@@ -89,6 +89,7 @@ export type Database = {
       events: {
         Row: {
           banner_url: string | null
+          category: string | null
           community_id: string | null
           created_at: string
           created_by: string
@@ -105,6 +106,7 @@ export type Database = {
         }
         Insert: {
           banner_url?: string | null
+          category?: string | null
           community_id?: string | null
           created_at?: string
           created_by: string
@@ -121,6 +123,7 @@ export type Database = {
         }
         Update: {
           banner_url?: string | null
+          category?: string | null
           community_id?: string | null
           created_at?: string
           created_by?: string
@@ -250,7 +253,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
-          event_id?: string
+          event_id: string
           id?: string
           name?: string
           price?: number
@@ -291,7 +294,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -345,10 +348,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
+      Update: infer U
+    }
+    ? U
+    : never
     : never
 
 export type Enums<
