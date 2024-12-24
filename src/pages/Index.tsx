@@ -125,8 +125,17 @@ const Index = () => {
     navigate("/events/create");
   };
 
-  const handleRSVP = async (eventId: string, ticketId: string) => {
-    rsvpMutation.mutate({ eventId, ticketId });
+  const handleRSVP = async (eventId: string) => {
+    const event = events?.find(e => e.id === eventId);
+    if (!event?.tickets?.[0]?.id) {
+      toast({
+        title: "Error",
+        description: "No tickets available for this event",
+        variant: "destructive",
+      });
+      return;
+    }
+    rsvpMutation.mutate({ eventId, ticketId: event.tickets[0].id });
   };
 
   const renderSkeleton = () => (
@@ -191,22 +200,8 @@ const Index = () => {
                 location={event.location || "Online Event"}
                 attendees={event.registrations?.length || 0}
                 category={event.category || "Event"}
-                imageUrl={
-                  event.banner_url ||
-                  "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80"
-                }
-                onRSVP={() => {
-                  const ticketId = event.tickets?.[0]?.id;
-                  if (ticketId) {
-                    handleRSVP(event.id, ticketId);
-                  } else {
-                    toast({
-                      title: "Error",
-                      description: "No tickets available for this event",
-                      variant: "destructive",
-                    });
-                  }
-                }}
+                imageUrl={event.banner_url}
+                onRSVP={() => handleRSVP(event.id)}
               />
             ))}
           </div>

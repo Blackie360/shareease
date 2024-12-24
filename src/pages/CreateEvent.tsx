@@ -85,7 +85,7 @@ export default function CreateEvent() {
         const fileExt = file.name.split(".").pop();
         const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError, data: uploadData } = await supabase.storage
           .from("event-images")
           .upload(filePath, file);
 
@@ -99,7 +99,7 @@ export default function CreateEvent() {
       }
 
       // Create event
-      const { error: eventError } = await supabase
+      const { data: eventData, error: eventError } = await supabase
         .from("events")
         .insert({
           title: data.title,
@@ -119,6 +119,19 @@ export default function CreateEvent() {
         .single();
 
       if (eventError) throw eventError;
+
+      // Create a default free ticket for the event
+      const { error: ticketError } = await supabase
+        .from("tickets")
+        .insert({
+          event_id: eventData.id,
+          name: "General Admission",
+          description: "Standard entry ticket",
+          price: 0,
+          quantity: data.maxAttendees || null,
+        });
+
+      if (ticketError) throw ticketError;
 
       toast({
         title: "Success!",
