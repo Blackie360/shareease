@@ -3,17 +3,9 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
+import { RSVPFormFields } from "./RSVPFormFields";
 
 interface RSVPFormProps {
   eventId: string;
@@ -104,7 +96,6 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
 
       if (registrationError) throw registrationError;
 
-      // Send confirmation email
       await sendConfirmationEmail(user.email!);
 
       toast({
@@ -127,90 +118,7 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="phoneNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone Number (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your phone number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="dietaryPreferences"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dietary Preferences (Optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Any dietary requirements or preferences?"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="accessibilityRequirements"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Accessibility Requirements (Optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Any accessibility requirements we should know about?"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="numberOfGuests"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Number of Guests</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min="1"
-                  {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="additionalNotes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Additional Notes (Optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Any additional information you'd like to share?"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+        <RSVPFormFields form={form} />
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Submitting..." : "Confirm RSVP"}
         </Button>
