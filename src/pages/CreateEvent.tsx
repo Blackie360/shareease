@@ -70,6 +70,13 @@ export default function CreateEvent() {
     try {
       setIsSubmitting(true);
 
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("You must be logged in to create an event");
+      }
+
       // Upload banner image if provided
       let bannerUrl = null;
       if (data.bannerImage?.[0]) {
@@ -105,6 +112,7 @@ export default function CreateEvent() {
           max_attendees: data.maxAttendees,
           banner_url: bannerUrl,
           is_published: true,
+          created_by: user.id, // Add the user ID here
         })
         .select()
         .single();
