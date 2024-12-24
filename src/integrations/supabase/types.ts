@@ -204,7 +204,8 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
-          username: string | null
+          phone_number: string | null
+          username: string
         }
         Insert: {
           avatar_url?: string | null
@@ -212,7 +213,8 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
-          username?: string | null
+          phone_number?: string | null
+          username: string
         }
         Update: {
           avatar_url?: string | null
@@ -220,7 +222,8 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
-          username?: string | null
+          phone_number?: string | null
+          username?: string
         }
         Relationships: []
       }
