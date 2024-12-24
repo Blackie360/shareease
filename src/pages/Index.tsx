@@ -34,7 +34,7 @@ const Index = () => {
         .select(`
           *,
           communities (name, logo_url),
-          tickets (price),
+          tickets (id, price),
           registrations (id)
         `)
         .eq("is_published", true)
