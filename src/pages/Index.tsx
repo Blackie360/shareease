@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 const CATEGORIES = [
@@ -34,7 +34,7 @@ const Index = () => {
         .select(`
           *,
           communities (name, logo_url),
-          tickets (id, price),
+          tickets (id, price, quantity),
           registrations (id)
         `)
         .eq("is_published", true)
@@ -61,6 +61,34 @@ const Index = () => {
         throw new Error("You must be logged in to RSVP");
       }
 
+      // Check if user has already registered
+      const { data: existingRegistration } = await supabase
+        .from("registrations")
+        .select()
+        .eq("event_id", eventId)
+        .eq("user_id", session.session.user.id)
+        .single();
+
+      if (existingRegistration) {
+        throw new Error("You have already registered for this event");
+      }
+
+      // Check ticket availability
+      const { data: ticket } = await supabase
+        .from("tickets")
+        .select("quantity, registrations(count)")
+        .eq("id", ticketId)
+        .single();
+
+      if (!ticket) {
+        throw new Error("Ticket not found");
+      }
+
+      const registrationCount = ticket.registrations?.[0]?.count ?? 0;
+      if (ticket.quantity && registrationCount >= ticket.quantity) {
+        throw new Error("This event is fully booked");
+      }
+
       const { data, error } = await supabase
         .from("registrations")
         .insert({
@@ -80,12 +108,16 @@ const Index = () => {
         description: "You have successfully RSVP'd to this event.",
       });
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error: Error) => {
+      if (error.message === "You must be logged in to RSVP") {
+        navigate("/login");
+      } else {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     },
   });
 
