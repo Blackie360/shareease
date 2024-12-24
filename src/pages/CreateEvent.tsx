@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { Calendar, MapPin, Upload, Users } from "lucide-react";
+import { Calendar, MapPin, Upload, Users, Video, MapPinned } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Form,
   FormControl,
@@ -98,21 +99,21 @@ export default function CreateEvent() {
       }
 
       // Create event
-      const { data: eventData, error: eventError } = await supabase
+      const { error: eventError } = await supabase
         .from("events")
         .insert({
           title: data.title,
           description: data.description,
           start_time: data.startTime,
           end_time: data.endTime,
-          location: data.location,
+          location: data.isOnline ? null : data.location,
           category: data.category,
           is_online: data.isOnline,
-          meeting_url: data.meetingUrl,
+          meeting_url: data.isOnline ? data.meetingUrl : null,
           max_attendees: data.maxAttendees,
           banner_url: bannerUrl,
           is_published: true,
-          created_by: user.id, // Add the user ID here
+          created_by: user.id,
         })
         .select()
         .single();
@@ -124,7 +125,7 @@ export default function CreateEvent() {
         description: "Your event has been created.",
       });
 
-      navigate(`/events/${eventData.id}`);
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -135,6 +136,8 @@ export default function CreateEvent() {
       setIsSubmitting(false);
     }
   };
+
+  const isOnline = form.watch("isOnline");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -209,17 +212,63 @@ export default function CreateEvent() {
 
               <FormField
                 control={form.control}
-                name="location"
+                name="isOnline"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">
+                        {field.value ? (
+                          <Video className="w-4 h-4 inline-block mr-2" />
+                        ) : (
+                          <MapPinned className="w-4 h-4 inline-block mr-2" />
+                        )}
+                        {field.value ? "Virtual Event" : "Physical Event"}
+                      </FormLabel>
+                    </div>
                     <FormControl>
-                      <Input placeholder="Event location" {...field} />
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {!isOnline && (
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Event location" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {isOnline && (
+                <FormField
+                  control={form.control}
+                  name="meetingUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Meeting URL</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter virtual meeting link"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
@@ -298,7 +347,7 @@ export default function CreateEvent() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/dashboard")}
                 >
                   Cancel
                 </Button>
