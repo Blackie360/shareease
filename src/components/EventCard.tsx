@@ -24,10 +24,23 @@ export function EventCard({
   id,
   onRSVP,
 }: EventCardProps) {
+  // Use a default image if imageUrl is not provided
+  const defaultImage = "/placeholder.svg";
+  const displayImage = imageUrl || defaultImage;
+
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg">
       <div className="aspect-video relative overflow-hidden">
-        <img src={imageUrl} alt={title} className="object-cover w-full h-full" />
+        <img 
+          src={displayImage} 
+          alt={title} 
+          className="object-cover w-full h-full"
+          onError={(e) => {
+            // Fallback to default image if the provided URL fails to load
+            const target = e.target as HTMLImageElement;
+            target.src = defaultImage;
+          }}
+        />
         <Badge className="absolute top-4 right-4 bg-primary">{category}</Badge>
       </div>
       <CardHeader>
