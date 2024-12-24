@@ -1,20 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Users, Edit, Trash, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EventStats } from "@/components/EventStats";
+import { EventsTable } from "@/components/EventsTable";
 
 export default function EventDashboard() {
   const navigate = useNavigate();
@@ -103,67 +96,10 @@ export default function EventDashboard() {
     );
   }
 
-  const renderEventTable = (events: any[], showActions = true) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Event Name</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>RSVPs</TableHead>
-          <TableHead>Status</TableHead>
-          {showActions && <TableHead>Actions</TableHead>}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {events?.map((event) => (
-          <TableRow key={event.id}>
-            <TableCell className="font-medium">{event.title}</TableCell>
-            <TableCell>
-              {new Date(event.start_time).toLocaleDateString()}
-            </TableCell>
-            <TableCell>
-              {event.is_online ? "Virtual" : "Physical"}
-            </TableCell>
-            <TableCell>
-              {event.registrations?.[0]?.count || 0}
-            </TableCell>
-            <TableCell>
-              <span
-                className={`px-2 py-1 rounded-full text-xs ${
-                  event.is_published
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
-              >
-                {event.is_published ? "Published" : "Draft"}
-              </span>
-            </TableCell>
-            {showActions && (
-              <TableCell>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/events/${event.id}`)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(event.id)}
-                  >
-                    <Trash className="w-4 h-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            )}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+  const totalRSVPs = createdEvents?.reduce(
+    (acc, event) => acc + (event.registrations?.[0]?.count || 0),
+    0
+  ) || 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -183,36 +119,23 @@ export default function EventDashboard() {
           </TabsList>
 
           <TabsContent value="created">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-2">Total Events</h3>
-                <p className="text-3xl font-bold">{createdEvents?.length || 0}</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-2">Total RSVPs</h3>
-                <p className="text-3xl font-bold">
-                  {createdEvents?.reduce(
-                    (acc, event) => acc + (event.registrations?.[0]?.count || 0),
-                    0
-                  ) || 0}
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-2">Published Events</h3>
-                <p className="text-3xl font-bold">
-                  {createdEvents?.filter((event) => event.is_published).length || 0}
-                </p>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              {renderEventTable(createdEvents || [])}
-            </div>
+            <EventStats
+              totalEvents={createdEvents?.length || 0}
+              totalRSVPs={totalRSVPs}
+              publishedEvents={createdEvents?.filter((event) => event.is_published).length || 0}
+            />
+            <EventsTable 
+              events={createdEvents || []} 
+              onDelete={handleDelete}
+              showActions={true}
+            />
           </TabsContent>
 
           <TabsContent value="attending">
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              {renderEventTable(attendedEvents || [], false)}
-            </div>
+            <EventsTable 
+              events={attendedEvents || []} 
+              showActions={false}
+            />
           </TabsContent>
         </Tabs>
       </main>
