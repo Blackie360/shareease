@@ -40,12 +40,6 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
 
   const sendConfirmationEmail = async (userEmail: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error("No session found when trying to send email");
-        return;
-      }
-
       const emailContent = `
         <h1>Thank you for registering for ${eventTitle}!</h1>
         <p>Your registration has been confirmed.</p>
@@ -53,24 +47,15 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
         <p>We'll send you more details closer to the event.</p>
       `;
 
-      const response = await fetch("/api/send-event-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
+      const { error } = await supabase.functions.invoke('send-event-email', {
+        body: {
           to: [userEmail],
           subject: `Registration Confirmed: ${eventTitle}`,
           html: emailContent,
-        }),
+        },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Email sending failed:", errorData);
-        throw new Error("Failed to send confirmation email");
-      }
+      if (error) throw error;
     } catch (error) {
       console.error("Error sending confirmation email:", error);
       throw error;
