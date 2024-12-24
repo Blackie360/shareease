@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -23,17 +23,50 @@ export default function Login() {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("Email not confirmed")) {
+          toast({
+            variant: "destructive",
+            title: "Email Not Verified",
+            description: "Please check your email and click the verification link before logging in.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Login Error",
+            description: error.message,
+          });
+        }
+        throw error;
+      }
       
       navigate("/");
+    } catch (error: any) {
+      console.error("Login error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Verification Email Sent",
+        description: "Please check your email for the verification link.",
+      });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
         description: error.message,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -81,8 +114,18 @@ export default function Login() {
             {loading ? "Signing in..." : "Sign in"}
           </Button>
 
-          <div className="text-center">
+          <div className="flex flex-col space-y-4 text-center">
             <Button
+              type="button"
+              variant="link"
+              className="text-sm"
+              onClick={handleResendVerification}
+            >
+              Resend verification email
+            </Button>
+            
+            <Button
+              type="button"
               variant="link"
               className="text-sm"
               onClick={() => navigate("/register")}
