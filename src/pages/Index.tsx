@@ -39,6 +39,10 @@ const Index = () => {
         query = query.ilike("title", `%${searchQuery}%`);
       }
 
+      if (selectedCategory) {
+        query = query.eq("category", selectedCategory);
+      }
+
       const { data, error } = await query;
       if (error) throw error;
       return data;
