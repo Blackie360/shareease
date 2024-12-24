@@ -184,25 +184,40 @@ export type Database = {
       }
       registrations: {
         Row: {
+          accessibility_requirements: string | null
+          additional_notes: string | null
           created_at: string
+          dietary_preferences: string | null
           event_id: string
           id: string
+          number_of_guests: number | null
+          phone_number: string | null
           status: string
           ticket_id: string
           user_id: string
         }
         Insert: {
+          accessibility_requirements?: string | null
+          additional_notes?: string | null
           created_at?: string
+          dietary_preferences?: string | null
           event_id: string
           id?: string
+          number_of_guests?: number | null
+          phone_number?: string | null
           status?: string
           ticket_id: string
           user_id: string
         }
         Update: {
+          accessibility_requirements?: string | null
+          additional_notes?: string | null
           created_at?: string
+          dietary_preferences?: string | null
           event_id?: string
           id?: string
+          number_of_guests?: number | null
+          phone_number?: string | null
           status?: string
           ticket_id?: string
           user_id?: string
@@ -274,7 +289,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_event_attendees: {
+        Args: {
+          event_id: string
+        }
+        Returns: {
+          registration_id: string
+          user_id: string
+          full_name: string
+          email: string
+          phone_number: string
+          dietary_preferences: string
+          accessibility_requirements: string
+          number_of_guests: number
+          additional_notes: string
+          status: string
+          created_at: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
