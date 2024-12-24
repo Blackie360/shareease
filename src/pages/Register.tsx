@@ -22,12 +22,12 @@ export default function Register() {
     setLoading(true);
     
     try {
-      // First check if username already exists
+      // First check if username already exists, using maybeSingle() instead of single()
       const { data: existingUser } = await supabase
         .from('profiles')
         .select('username')
         .eq('username', username.toLowerCase())
-        .single();
+        .maybeSingle();
 
       if (existingUser) {
         throw new Error('Username already taken');
