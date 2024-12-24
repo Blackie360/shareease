@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Lock, Phone } from "lucide-react";
+import { User, Mail, Lock, Phone, AtSign } from "lucide-react";
 
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,12 +22,23 @@ export default function Register() {
     setLoading(true);
     
     try {
+      // First check if username already exists
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username.toLowerCase())
+        .single();
+
+      if (existingUser) {
+        throw new Error('Username already taken');
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            username: fullName.toLowerCase().replace(/\s+/g, '-'), // Create URL-friendly username from full name
+            username: username.toLowerCase(),
             full_name: fullName,
             phone_number: phoneNumber,
           },
@@ -74,6 +86,22 @@ export default function Register() {
                   className="pl-10"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="username">Username</Label>
+              <div className="relative">
+                <AtSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  className="pl-10"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.replace(/\s+/g, ''))}
+                  placeholder="Choose a unique username"
                 />
               </div>
             </div>
