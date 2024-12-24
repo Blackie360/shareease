@@ -1,6 +1,26 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export function Header() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate("/login");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -14,8 +34,8 @@ export function Header() {
           <a href="/communities" className="text-gray-600 hover:text-primary">
             Communities
           </a>
-          <Button asChild variant="outline">
-            <a href="/login">Sign In</a>
+          <Button onClick={handleLogout} variant="outline">
+            Sign Out
           </Button>
           <Button asChild>
             <a href="/create-event">Create Event</a>
