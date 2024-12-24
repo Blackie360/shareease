@@ -10,8 +10,7 @@ import { User, Mail, Lock, Phone } from "lucide-react";
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -27,8 +26,8 @@ export default function Register() {
         password,
         options: {
           data: {
-            username,
-            display_name: displayName,
+            username: fullName.toLowerCase().replace(/\s+/g, '-'), // Create URL-friendly username from full name
+            full_name: fullName,
             phone_number: phoneNumber,
           },
         },
@@ -79,32 +78,18 @@ export default function Register() {
               </div>
             </div>
             <div>
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="fullName">Full Name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <Input
-                  id="username"
-                  name="username"
+                  id="fullName"
+                  name="fullName"
                   type="text"
                   required
                   className="pl-10"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="displayName">Display Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                <Input
-                  id="displayName"
-                  name="displayName"
-                  type="text"
-                  required
-                  className="pl-10"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Enter your full name"
                 />
               </div>
             </div>
@@ -119,6 +104,7 @@ export default function Register() {
                   className="pl-10"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Enter your phone number"
                 />
               </div>
             </div>
