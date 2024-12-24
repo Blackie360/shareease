@@ -11,9 +11,19 @@ interface EventCardProps {
   category: string;
   imageUrl: string;
   id: string;
+  onRSVP?: () => void;
 }
 
-export function EventCard({ title, date, location, attendees, category, imageUrl, id }: EventCardProps) {
+export function EventCard({
+  title,
+  date,
+  location,
+  attendees,
+  category,
+  imageUrl,
+  id,
+  onRSVP,
+}: EventCardProps) {
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg">
       <div className="aspect-video relative overflow-hidden">
@@ -37,10 +47,15 @@ export function EventCard({ title, date, location, attendees, category, imageUrl
           <span>{attendees} attendees</span>
         </div>
       </CardContent>
-      <CardFooter>
-        <Button asChild className="w-full">
+      <CardFooter className="flex gap-2">
+        <Button asChild variant="outline" className="flex-1">
           <a href={`/events/${id}`}>View Details</a>
         </Button>
+        {onRSVP && (
+          <Button onClick={onRSVP} className="flex-1">
+            RSVP
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

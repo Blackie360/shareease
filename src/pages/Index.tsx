@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { Header } from "@/components/Header";
 import { EventCard } from "@/components/EventCard";
 import { SearchBar } from "@/components/SearchBar";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
-// Categories for tech events
 const CATEGORIES = [
   "Conference",
   "Workshop",
@@ -18,6 +21,8 @@ const CATEGORIES = [
 ];
 
 const Index = () => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -49,6 +54,49 @@ const Index = () => {
     },
   });
 
+  const rsvpMutation = useMutation({
+    mutationFn: async ({ eventId, ticketId }: { eventId: string; ticketId: string }) => {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        throw new Error("You must be logged in to RSVP");
+      }
+
+      const { data, error } = await supabase
+        .from("registrations")
+        .insert({
+          event_id: eventId,
+          ticket_id: ticketId,
+          user_id: session.session.user.id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "You have successfully RSVP'd to this event.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateEvent = () => {
+    navigate("/events/create");
+  };
+
+  const handleRSVP = async (eventId: string, ticketId: string) => {
+    rsvpMutation.mutate({ eventId, ticketId });
+  };
+
   const renderSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -65,13 +113,15 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Discover Tech Events Near You
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Join the community and connect with other tech enthusiasts
-          </p>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">Events</h1>
+          <Button onClick={handleCreateEvent} className="bg-primary hover:bg-primary/90">
+            <Plus className="w-4 h-4 mr-2" />
+            Create Event
+          </Button>
+        </div>
+
+        <div className="max-w-2xl mx-auto mb-12">
           <SearchBar onSearch={setSearchQuery} />
         </div>
 
@@ -113,6 +163,18 @@ const Index = () => {
                   event.banner_url ||
                   "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80"
                 }
+                onRSVP={() => {
+                  const ticketId = event.tickets?.[0]?.id;
+                  if (ticketId) {
+                    handleRSVP(event.id, ticketId);
+                  } else {
+                    toast({
+                      title: "Error",
+                      description: "No tickets available for this event",
+                      variant: "destructive",
+                    });
+                  }
+                }}
               />
             ))}
           </div>
