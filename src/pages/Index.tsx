@@ -62,24 +62,27 @@ const Index = () => {
       }
 
       // Check if user has already registered
-      const { data: existingRegistration } = await supabase
+      const { data: existingRegistration, error: registrationCheckError } = await supabase
         .from("registrations")
         .select()
         .eq("event_id", eventId)
         .eq("user_id", session.session.user.id)
-        .single();
+        .maybeSingle();
+
+      if (registrationCheckError) throw registrationCheckError;
 
       if (existingRegistration) {
         throw new Error("You have already registered for this event");
       }
 
       // Check ticket availability
-      const { data: ticket } = await supabase
+      const { data: ticket, error: ticketError } = await supabase
         .from("tickets")
         .select("quantity, registrations(count)")
         .eq("id", ticketId)
         .single();
 
+      if (ticketError) throw ticketError;
       if (!ticket) {
         throw new Error("Ticket not found");
       }
