@@ -41,7 +41,10 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
   const sendConfirmationEmail = async (userEmail: string) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        console.error("No session found when trying to send email");
+        return;
+      }
 
       const emailContent = `
         <h1>Thank you for registering for ${eventTitle}!</h1>
@@ -50,7 +53,7 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
         <p>We'll send you more details closer to the event.</p>
       `;
 
-      await fetch("/api/send-event-email", {
+      const response = await fetch("/api/send-event-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,8 +65,15 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
           html: emailContent,
         }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Email sending failed:", errorData);
+        throw new Error("Failed to send confirmation email");
+      }
     } catch (error) {
       console.error("Error sending confirmation email:", error);
+      throw error;
     }
   };
 
@@ -96,12 +106,19 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
 
       if (registrationError) throw registrationError;
 
-      await sendConfirmationEmail(user.email!);
-
-      toast({
-        title: "Success!",
-        description: "Your RSVP has been confirmed.",
-      });
+      try {
+        await sendConfirmationEmail(user.email!);
+        toast({
+          title: "Success!",
+          description: "Your RSVP has been confirmed and a confirmation email has been sent.",
+        });
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+        toast({
+          title: "RSVP Successful",
+          description: "Your RSVP was confirmed but we couldn't send the confirmation email. Please check your event details in the dashboard.",
+        });
+      }
 
       navigate("/dashboard");
     } catch (error: any) {
