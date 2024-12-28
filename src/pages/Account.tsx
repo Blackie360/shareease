@@ -26,13 +26,20 @@ export default function Account() {
     async function loadProfile() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No user found. Please log in again.",
+          });
+          return;
+        }
 
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
 
@@ -45,10 +52,11 @@ export default function Account() {
           });
         }
       } catch (error: any) {
+        console.error("Error loading profile:", error);
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to load profile",
+          description: "Failed to load profile: " + error.message,
         });
       } finally {
         setIsLoading(false);
@@ -63,6 +71,23 @@ export default function Account() {
       setIsSaving(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
+
+      // Check if username is already taken (excluding current user)
+      const { data: existingUser } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", data.username)
+        .neq("id", user.id)
+        .maybeSingle();
+
+      if (existingUser) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Username is already taken",
+        });
+        return;
+      }
 
       const { error } = await supabase
         .from("profiles")
@@ -81,6 +106,7 @@ export default function Account() {
         description: "Your profile has been updated",
       });
     } catch (error: any) {
+      console.error("Error saving profile:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -115,7 +141,7 @@ export default function Account() {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                {...form.register("username")}
+                {...form.register("username", { required: true })}
                 placeholder="Enter your username"
               />
             </div>
