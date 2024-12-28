@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Upload } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface EventFormData {
   title: string;
@@ -203,9 +204,16 @@ export default function CreateEvent() {
                     </div>
                   </Tabs>
 
+                  <Separator className="my-6" />
+
                   <div className="space-y-4">
-                    <Label>Event Banner</Label>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label>Event Banner</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Add a banner image to make your event stand out
+                        </p>
+                      </div>
                       <Button
                         type="button"
                         variant="outline"
@@ -216,14 +224,14 @@ export default function CreateEvent() {
                         <Upload className="w-4 h-4 mr-2" />
                         Upload Image
                       </Button>
-                      <Input
-                        id="banner"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageChange}
-                      />
                     </div>
+                    <Input
+                      id="banner"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
                     {previewUrl && (
                       <div className="mt-4">
                         <img
