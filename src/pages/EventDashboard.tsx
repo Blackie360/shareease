@@ -8,6 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventStats } from "@/components/EventStats";
 import { EventsTable } from "@/components/EventsTable";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { DashboardSidebar } from "@/components/DashboardSidebar";
+import { Plus, Loader2 } from "lucide-react";
 
 export default function EventDashboard() {
   const navigate = useNavigate();
@@ -89,7 +92,7 @@ export default function EventDashboard() {
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="flex justify-center items-center h-64">
-            <p>Loading...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         </main>
       </div>
@@ -104,41 +107,53 @@ export default function EventDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">My Events</h1>
-          <Button onClick={() => navigate("/events/create")}>
-            Create New Event
-          </Button>
+      <SidebarProvider>
+        <div className="flex min-h-[calc(100vh-4rem)]">
+          <DashboardSidebar />
+          <main className="flex-1 p-8">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold tracking-tight">My Events</h1>
+                <Button onClick={() => navigate("/events/create")} size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create New Event
+                </Button>
+              </div>
+
+              <Tabs defaultValue="created" className="space-y-8">
+                <TabsList className="w-full sm:w-auto">
+                  <TabsTrigger value="created" className="flex-1 sm:flex-none">Events I Created</TabsTrigger>
+                  <TabsTrigger value="attending" className="flex-1 sm:flex-none">Events I'm Attending</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="created" className="space-y-8">
+                  <EventStats
+                    totalEvents={createdEvents?.length || 0}
+                    totalRSVPs={totalRSVPs}
+                    publishedEvents={createdEvents?.filter((event) => event.is_published).length || 0}
+                  />
+                  <div className="bg-white rounded-lg shadow-sm">
+                    <EventsTable 
+                      events={createdEvents || []} 
+                      onDelete={handleDelete}
+                      showActions={true}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="attending">
+                  <div className="bg-white rounded-lg shadow-sm">
+                    <EventsTable 
+                      events={attendedEvents || []} 
+                      showActions={false}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </main>
         </div>
-
-        <Tabs defaultValue="created" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="created">Events I Created</TabsTrigger>
-            <TabsTrigger value="attending">Events I'm Attending</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="created">
-            <EventStats
-              totalEvents={createdEvents?.length || 0}
-              totalRSVPs={totalRSVPs}
-              publishedEvents={createdEvents?.filter((event) => event.is_published).length || 0}
-            />
-            <EventsTable 
-              events={createdEvents || []} 
-              onDelete={handleDelete}
-              showActions={true}
-            />
-          </TabsContent>
-
-          <TabsContent value="attending">
-            <EventsTable 
-              events={attendedEvents || []} 
-              showActions={false}
-            />
-          </TabsContent>
-        </Tabs>
-      </main>
+      </SidebarProvider>
     </div>
   );
 }
