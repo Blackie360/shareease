@@ -57,37 +57,6 @@ export function RSVPForm({
     },
   });
 
-  const sendConfirmationEmail = async (userEmail: string) => {
-    console.log("Attempting to send confirmation email to:", userEmail);
-    try {
-      const emailContent = `
-        <h1>Thank you for registering for ${eventTitle}!</h1>
-        <p>Your registration has been confirmed.</p>
-        ${isOnline ? `<p>Meeting Link: ${meetingUrl}</p>` : ""}
-        <p>We'll send you more details closer to the event.</p>
-      `;
-
-      const { error } = await supabase.functions.invoke('send-event-email', {
-        body: {
-          to: [userEmail],
-          subject: `Registration Confirmed: ${eventTitle}`,
-          html: emailContent,
-        },
-      });
-
-      if (error) {
-        console.error("Supabase function error:", error);
-        throw error;
-      }
-      
-      console.log("Confirmation email sent successfully");
-      return true;
-    } catch (error) {
-      console.error("Error sending confirmation email:", error);
-      throw error;
-    }
-  };
-
   const onSubmit = async (data: RSVPFormData) => {
     try {
       setIsSubmitting(true);
@@ -102,7 +71,6 @@ export function RSVPForm({
         return;
       }
 
-      // First create the registration
       const { error: registrationError } = await supabase
         .from("registrations")
         .insert({
@@ -118,26 +86,10 @@ export function RSVPForm({
 
       if (registrationError) throw registrationError;
 
-      // Then try to send the confirmation email
-      let emailSent = false;
-      try {
-        emailSent = await sendConfirmationEmail(user.email!);
-      } catch (emailError) {
-        console.error("Failed to send confirmation email:", emailError);
-      }
-
-      // Show appropriate success message based on email status
-      if (emailSent) {
-        toast({
-          title: "Success!",
-          description: "Your RSVP has been confirmed and a confirmation email has been sent.",
-        });
-      } else {
-        toast({
-          title: "RSVP Successful",
-          description: "Your RSVP was confirmed but we couldn't send the confirmation email. Please check your event details in the dashboard.",
-        });
-      }
+      toast({
+        title: "Success!",
+        description: "Your RSVP has been confirmed.",
+      });
 
       onSuccess?.();
       navigate("/dashboard");

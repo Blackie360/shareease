@@ -79,6 +79,9 @@ export function Header() {
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     Dashboard
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/account")}>
+                    Account Settings
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout}>
                     Sign Out
                   </DropdownMenuItem>

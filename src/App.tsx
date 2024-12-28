@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import CreateEvent from "./pages/CreateEvent";
 import EventDashboard from "./pages/EventDashboard";
 import EventDetails from "./pages/EventDetails";
+import Account from "./pages/Account";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <EventDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <Account />
               </ProtectedRoute>
             }
           />
