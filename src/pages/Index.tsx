@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
 import { Header } from "@/components/Header";
-import { EventCard } from "@/components/EventCard";
 import { SearchBar } from "@/components/SearchBar";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { Hero } from "@/components/Hero";
+import { EventsList } from "@/components/EventsList";
+import { CategoryFilter } from "@/components/CategoryFilter";
 
 const CATEGORIES = [
   "Conference",
@@ -124,10 +122,6 @@ const Index = () => {
     },
   });
 
-  const handleCreateEvent = () => {
-    navigate("/events/create");
-  };
-
   const handleRSVP = async (eventId: string) => {
     const event = events?.find(e => e.id === eventId);
     if (!event?.tickets?.[0]?.id) {
@@ -141,70 +135,31 @@ const Index = () => {
     rsvpMutation.mutate({ eventId, ticketId: event.tickets[0].id });
   };
 
-  const renderSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="space-y-4">
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-        </div>
-      ))}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <Hero />
+      
+      <main id="events-section" className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Events</h1>
+          <h2 className="text-3xl font-bold text-gray-900">Discover Events</h2>
         </div>
 
         <div className="max-w-2xl mx-auto mb-12">
           <SearchBar onSearch={setSearchQuery} />
         </div>
 
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-          {CATEGORIES.map((category) => (
-            <Badge
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              className="cursor-pointer"
-              onClick={() =>
-                setSelectedCategory(
-                  selectedCategory === category ? null : category
-                )
-              }
-            >
-              {category}
-            </Badge>
-          ))}
-        </div>
+        <CategoryFilter
+          categories={CATEGORIES}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
 
-        {isLoading ? (
-          renderSkeleton()
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events?.map((event) => (
-              <EventCard
-                key={event.id}
-                id={event.id}
-                title={event.title}
-                date={new Date(event.start_time).toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-                location={event.location || "Online Event"}
-                attendees={event.registrations?.length || 0}
-                category={event.category || "Event"}
-                imageUrl={event.banner_url}
-                onRSVP={() => handleRSVP(event.id)}
-              />
-            ))}
-          </div>
-        )}
+        <EventsList 
+          events={events}
+          isLoading={isLoading}
+          onRSVP={handleRSVP}
+        />
       </main>
     </div>
   );
