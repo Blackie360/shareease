@@ -20,6 +20,7 @@ interface EventCardProps {
   meetingUrl?: string;
   ticketId?: string;
   onRSVP?: () => void;
+  commentCount?: number;
 }
 
 export function EventCard({
@@ -35,6 +36,7 @@ export function EventCard({
   meetingUrl,
   ticketId,
   onRSVP,
+  commentCount = 0,
 }: EventCardProps) {
   const [isRSVPDialogOpen, setIsRSVPDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -77,9 +79,15 @@ export function EventCard({
             <MapPin className="w-4 h-4 mr-2 text-[#9b87f5]" />
             <span>{location}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-500">
-            <Users className="w-4 h-4 mr-2 text-[#9b87f5]" />
-            <span>{attendees} attendees</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-sm text-gray-500">
+              <Users className="w-4 h-4 mr-2 text-[#9b87f5]" />
+              <span>{attendees} attendees</span>
+            </div>
+            <div className="flex items-center text-sm text-gray-500">
+              <MessageSquare className="w-4 h-4 mr-2 text-[#9b87f5]" />
+              <span>{commentCount} comments</span>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex gap-2">

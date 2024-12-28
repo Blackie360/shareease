@@ -10,6 +10,7 @@ interface Event {
   category: string;
   banner_url: string;
   tickets: { id: string }[];
+  comments: { id: string }[];
 }
 
 interface EventsListProps {
@@ -50,6 +51,7 @@ export function EventsList({ events, isLoading, onRSVP }: EventsListProps) {
           category={event.category || "Event"}
           imageUrl={event.banner_url}
           onRSVP={() => onRSVP(event.id)}
+          commentCount={event.comments?.length || 0}
         />
       ))}
     </div>
