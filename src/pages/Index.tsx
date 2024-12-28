@@ -18,6 +18,21 @@ const CATEGORIES = [
   "Training",
 ];
 
+interface Event {
+  id: string;
+  title: string;
+  start_time: string;
+  location: string;
+  registrations: any[];
+  category: string;
+  banner_url: string;
+  tickets: { id: string }[];
+  comments: { id: string }[];
+  description?: string;
+  is_online?: boolean;
+  meeting_url?: string;
+}
+
 const Index = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -33,7 +48,8 @@ const Index = () => {
           *,
           communities (name, logo_url),
           tickets (id, price, quantity),
-          registrations (id)
+          registrations (id),
+          comments (id)
         `)
         .eq("is_published", true)
         .order("start_time", { ascending: true });
