@@ -9,11 +9,11 @@ export function Hero() {
       <div className="container mx-auto px-4 py-20 md:py-32">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-            Event Management,{" "}
-            <span className="text-primary block mt-2">Scalable</span>
+            One Platform for{" "}
+            <span className="text-primary block mt-2">Every Event</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Discover and join amazing events happening around you. Connect with people who share your interests and create unforgettable experiences.
+            From small meetups to global conferences, manage every detail with ease and grow your audience.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
