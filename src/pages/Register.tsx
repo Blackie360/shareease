@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Lock, Phone, AtSign } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,22 +66,27 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl w-full space-y-8 flex gap-8">
-        <div className="flex-1">
+    <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 p-4 lg:p-8">
+      <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-8 items-center">
+        {/* Image container - hidden on very small screens */}
+        <div className="hidden sm:block lg:flex-1 w-full max-w-xl lg:max-w-none mb-8 lg:mb-0">
           <img
             src="/lovable-uploads/d250d3cc-030e-410c-a4a1-f5f2bd6eea8a.png"
             alt="Developer coding"
             className="w-full h-auto rounded-lg shadow-2xl"
           />
         </div>
-        <div className="flex-1">
-          <Card className="backdrop-blur-sm bg-white/10 border-none shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-3xl font-bold text-white">Create your account</CardTitle>
+
+        {/* Form container */}
+        <div className="w-full lg:flex-1 max-w-md">
+          <Card className="backdrop-blur-sm bg-white/10 border-none shadow-xl w-full">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl md:text-3xl font-bold text-white text-center">
+                Create your account
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <form className="mt-8 space-y-6" onSubmit={handleRegister}>
+              <form className="space-y-4 md:space-y-6" onSubmit={handleRegister}>
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="email" className="text-white">Email address</Label>

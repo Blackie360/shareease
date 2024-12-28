@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Lock } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,25 +45,32 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl w-full space-y-8 flex gap-8">
-        <div className="flex-1">
+    <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 p-4 lg:p-8">
+      <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-8 items-center">
+        {/* Image container - hidden on very small screens */}
+        <div className="hidden sm:block lg:flex-1 w-full max-w-xl lg:max-w-none mb-8 lg:mb-0">
           <img
             src="/lovable-uploads/d250d3cc-030e-410c-a4a1-f5f2bd6eea8a.png"
             alt="Developer coding"
             className="w-full h-auto rounded-lg shadow-2xl"
           />
         </div>
-        <div className="flex-1">
-          <Card className="backdrop-blur-sm bg-white/10 border-none shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-3xl font-bold text-white">Sign in</CardTitle>
+
+        {/* Form container */}
+        <div className="w-full lg:flex-1 max-w-md">
+          <Card className="backdrop-blur-sm bg-white/10 border-none shadow-xl w-full">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl md:text-3xl font-bold text-white text-center">
+                Sign in
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+              <form className="space-y-4 md:space-y-6" onSubmit={handleLogin}>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="email" className="text-white">Email address</Label>
+                    <Label htmlFor="email" className="text-white">
+                      Email address
+                    </Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
@@ -78,7 +87,9 @@ export default function Login() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="password" className="text-white">Password</Label>
+                    <Label htmlFor="password" className="text-white">
+                      Password
+                    </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
