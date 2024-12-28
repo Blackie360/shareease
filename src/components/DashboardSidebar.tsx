@@ -10,24 +10,28 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Button } from "./ui/button";
 
 const menuItems = [
   {
     title: "Overview",
-    path: "/dashboard",
+    path: "/dashboard#overview",
     icon: Home,
   },
   {
-    title: "My Events",
-    path: "/events",
+    title: "Created Events",
+    path: "/dashboard#created-events",
+    icon: Calendar,
+  },
+  {
+    title: "Attending Events",
+    path: "/dashboard#attending-events",
     icon: Calendar,
   },
   {
     title: "Settings",
-    path: "/settings",
+    path: "/account",
     icon: Settings,
   },
 ];
@@ -36,6 +40,19 @@ export function DashboardSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const handleNavigation = (path: string) => {
+    if (path.includes('#')) {
+      const [route, hash] = path.split('#');
+      if (location.pathname !== route) {
+        navigate(path);
+      } else {
+        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate(path);
+    }
+  };
 
   return (
     <Sidebar className="border-r border-gray-200">
@@ -62,10 +79,10 @@ export function DashboardSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
-                    onClick={() => navigate(item.path)}
+                    onClick={() => handleNavigation(item.path)}
                     className={`w-full flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 ${
                       isCollapsed ? 'justify-center' : ''
-                    } ${location.pathname === item.path ? 'bg-gray-100' : ''}`}
+                    } ${location.pathname + location.hash === item.path ? 'bg-gray-100' : ''}`}
                     tooltip={isCollapsed ? item.title : undefined}
                   >
                     <item.icon className="h-4 w-4" />

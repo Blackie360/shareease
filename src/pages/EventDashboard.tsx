@@ -112,13 +112,20 @@ export default function EventDashboard() {
           <DashboardSidebar />
           <main className="flex-1 p-4 md:p-8 w-full overflow-x-hidden">
             <div className="max-w-7xl mx-auto space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">My Events</h1>
-                <Button onClick={() => navigate("/events/create")} size="sm" className="w-full sm:w-auto">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create New Event
-                </Button>
-              </div>
+              <section id="overview" className="scroll-mt-16">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Overview</h1>
+                  <Button onClick={() => navigate("/events/create")} size="sm" className="w-full sm:w-auto">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create New Event
+                  </Button>
+                </div>
+                <EventStats
+                  totalEvents={createdEvents?.length || 0}
+                  totalRSVPs={totalRSVPs}
+                  publishedEvents={createdEvents?.filter((event) => event.is_published).length || 0}
+                />
+              </section>
 
               <Tabs defaultValue="created" className="space-y-6">
                 <TabsList className="w-full sm:w-auto flex">
@@ -127,33 +134,32 @@ export default function EventDashboard() {
                 </TabsList>
 
                 <TabsContent value="created" className="space-y-6">
-                  <div className="grid gap-6">
-                    <EventStats
-                      totalEvents={createdEvents?.length || 0}
-                      totalRSVPs={totalRSVPs}
-                      publishedEvents={createdEvents?.filter((event) => event.is_published).length || 0}
-                    />
-                    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <EventsTable 
-                          events={createdEvents || []} 
-                          onDelete={handleDelete}
-                          showActions={true}
-                        />
+                  <section id="created-events" className="scroll-mt-16">
+                    <div className="grid gap-6">
+                      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <EventsTable 
+                            events={createdEvents || []} 
+                            onDelete={handleDelete}
+                            showActions={true}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </section>
                 </TabsContent>
 
                 <TabsContent value="attending">
-                  <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <EventsTable 
-                        events={attendedEvents || []} 
-                        showActions={false}
-                      />
+                  <section id="attending-events" className="scroll-mt-16">
+                    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <EventsTable 
+                          events={attendedEvents || []} 
+                          showActions={false}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </section>
                 </TabsContent>
               </Tabs>
             </div>
