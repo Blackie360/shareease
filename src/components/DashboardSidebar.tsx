@@ -1,5 +1,5 @@
-import { Calendar, Home, Users, Settings, Menu as MenuIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Calendar, Home, Settings, Menu as MenuIcon } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import {
   Sidebar,
@@ -16,7 +16,7 @@ import { Button } from "./ui/button";
 
 const menuItems = [
   {
-    title: "Dashboard",
+    title: "Overview",
     path: "/dashboard",
     icon: Home,
   },
@@ -24,11 +24,6 @@ const menuItems = [
     title: "My Events",
     path: "/events",
     icon: Calendar,
-  },
-  {
-    title: "Communities",
-    path: "/communities",
-    icon: Users,
   },
   {
     title: "Settings",
@@ -39,6 +34,7 @@ const menuItems = [
 
 export function DashboardSidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -69,7 +65,7 @@ export function DashboardSidebar() {
                     onClick={() => navigate(item.path)}
                     className={`w-full flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 ${
                       isCollapsed ? 'justify-center' : ''
-                    }`}
+                    } ${location.pathname === item.path ? 'bg-gray-100' : ''}`}
                     tooltip={isCollapsed ? item.title : undefined}
                   >
                     <item.icon className="h-4 w-4" />
