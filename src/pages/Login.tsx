@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -72,68 +73,81 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
+      <div className="max-w-4xl w-full space-y-8 flex gap-8">
+        <div className="flex-1">
+          <img
+            src="/lovable-uploads/91a5ce92-758d-4304-b199-cec6c770d618.png"
+            alt="Login illustration"
+            className="w-full h-auto"
+          />
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
+        <div className="flex-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-3xl font-bold">Sign in</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="email">Email address</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </Button>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? "Signing in..." : "Sign in"}
+                </Button>
 
-          <div className="flex flex-col space-y-4 text-center">
-            <Button
-              type="button"
-              variant="link"
-              className="text-sm"
-              onClick={handleResendVerification}
-            >
-              Resend verification email
-            </Button>
-            
-            <Button
-              type="button"
-              variant="link"
-              className="text-sm"
-              onClick={() => navigate("/register")}
-            >
-              Don't have an account? Sign up
-            </Button>
-          </div>
-        </form>
+                <div className="flex flex-col space-y-4 text-center">
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-sm"
+                    onClick={handleResendVerification}
+                  >
+                    Resend verification email
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-sm"
+                    onClick={() => navigate("/register")}
+                  >
+                    Don't have an account? Sign up
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
