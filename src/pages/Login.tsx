@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, Lock } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -25,19 +26,11 @@ export default function Login() {
       });
 
       if (error) {
-        if (error.message.includes("Email not confirmed")) {
-          toast({
-            variant: "destructive",
-            title: "Email Not Verified",
-            description: "Please check your email and click the verification link before logging in.",
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Login Error",
-            description: error.message,
-          });
-        }
+        toast({
+          variant: "destructive",
+          title: "Login Error",
+          description: error.message,
+        });
         throw error;
       }
       
@@ -49,77 +42,63 @@ export default function Login() {
     }
   };
 
-  const handleResendVerification = async () => {
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Verification Email Sent",
-        description: "Please check your email for the verification link.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    }
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl w-full space-y-8 flex gap-8">
         <div className="flex-1">
           <img
-            src="/lovable-uploads/91a5ce92-758d-4304-b199-cec6c770d618.png"
-            alt="Login illustration"
-            className="w-full h-auto"
+            src="/lovable-uploads/d250d3cc-030e-410c-a4a1-f5f2bd6eea8a.png"
+            alt="Developer coding"
+            className="w-full h-auto rounded-lg shadow-2xl"
           />
         </div>
         <div className="flex-1">
-          <Card>
+          <Card className="backdrop-blur-sm bg-white/10 border-none shadow-xl">
             <CardHeader>
-              <CardTitle className="text-3xl font-bold">Sign in</CardTitle>
+              <CardTitle className="text-3xl font-bold text-white">Sign in</CardTitle>
             </CardHeader>
             <CardContent>
               <form className="mt-8 space-y-6" onSubmit={handleLogin}>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="email">Email address</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="mt-1"
-                    />
+                    <Label htmlFor="email" className="text-white">Email address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+                        placeholder="Enter your email"
+                      />
+                    </div>
                   </div>
                   <div>
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      autoComplete="current-password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="mt-1"
-                    />
+                    <Label htmlFor="password" className="text-white">Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        autoComplete="current-password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+                        placeholder="Enter your password"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={loading}
                 >
                   {loading ? "Signing in..." : "Sign in"}
@@ -129,16 +108,7 @@ export default function Login() {
                   <Button
                     type="button"
                     variant="link"
-                    className="text-sm"
-                    onClick={handleResendVerification}
-                  >
-                    Resend verification email
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="text-sm"
+                    className="text-sm text-blue-300 hover:text-blue-200"
                     onClick={() => navigate("/register")}
                   >
                     Don't have an account? Sign up

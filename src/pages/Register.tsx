@@ -49,7 +49,7 @@ export default function Register() {
       
       toast({
         title: "Registration successful",
-        description: "Please check your email to verify your account.",
+        description: "You can now sign in with your credentials.",
       });
       navigate("/login");
     } catch (error: any) {
@@ -64,25 +64,25 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl w-full space-y-8 flex gap-8">
         <div className="flex-1">
           <img
-            src="/lovable-uploads/91a5ce92-758d-4304-b199-cec6c770d618.png"
-            alt="Register illustration"
-            className="w-full h-auto"
+            src="/lovable-uploads/d250d3cc-030e-410c-a4a1-f5f2bd6eea8a.png"
+            alt="Developer coding"
+            className="w-full h-auto rounded-lg shadow-2xl"
           />
         </div>
         <div className="flex-1">
-          <Card>
+          <Card className="backdrop-blur-sm bg-white/10 border-none shadow-xl">
             <CardHeader>
-              <CardTitle className="text-3xl font-bold">Create your account</CardTitle>
+              <CardTitle className="text-3xl font-bold text-white">Create your account</CardTitle>
             </CardHeader>
             <CardContent>
               <form className="mt-8 space-y-6" onSubmit={handleRegister}>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="email">Email address</Label>
+                    <Label htmlFor="email" className="text-white">Email address</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
@@ -91,14 +91,15 @@ export default function Register() {
                         type="email"
                         autoComplete="email"
                         required
-                        className="pl-10"
+                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="username">Username</Label>
+                    <Label htmlFor="username" className="text-white">Username</Label>
                     <div className="relative">
                       <AtSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
@@ -106,7 +107,7 @@ export default function Register() {
                         name="username"
                         type="text"
                         required
-                        className="pl-10"
+                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
                         value={username}
                         onChange={(e) => setUsername(e.target.value.replace(/\s+/g, ''))}
                         placeholder="Choose a unique username"
@@ -114,7 +115,7 @@ export default function Register() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="fullName">Full Name</Label>
+                    <Label htmlFor="fullName" className="text-white">Full Name</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
@@ -122,7 +123,7 @@ export default function Register() {
                         name="fullName"
                         type="text"
                         required
-                        className="pl-10"
+                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder="Enter your full name"
@@ -130,14 +131,14 @@ export default function Register() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                    <Label htmlFor="phoneNumber" className="text-white">Phone Number</Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
                         id="phoneNumber"
                         name="phoneNumber"
                         type="tel"
-                        className="pl-10"
+                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="Enter your phone number"
@@ -145,7 +146,7 @@ export default function Register() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password" className="text-white">Password</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
@@ -154,9 +155,10 @@ export default function Register() {
                         type="password"
                         autoComplete="new-password"
                         required
-                        className="pl-10"
+                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Choose a strong password"
                       />
                     </div>
                   </div>
@@ -164,7 +166,7 @@ export default function Register() {
 
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={loading}
                 >
                   {loading ? "Creating account..." : "Create account"}
@@ -173,7 +175,7 @@ export default function Register() {
                 <div className="text-center">
                   <Button
                     variant="link"
-                    className="text-sm"
+                    className="text-sm text-blue-300 hover:text-blue-200"
                     onClick={() => navigate("/login")}
                   >
                     Already have an account? Sign in
