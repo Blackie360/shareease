@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Chrome } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Separator } from "@/components/ui/separator";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -27,20 +28,36 @@ export default function Login() {
         password,
       });
 
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Login Error",
-          description: error.message,
-        });
-        throw error;
-      }
+      if (error) throw error;
       
       navigate("/");
     } catch (error: any) {
-      console.error("Login error:", error);
+      toast({
+        variant: "destructive",
+        title: "Login Error",
+        description: error.message,
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
     }
   };
 
@@ -65,12 +82,32 @@ export default function Login() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Google Sign In Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full mb-6 bg-white hover:bg-gray-100 text-gray-900"
+                onClick={handleGoogleSignIn}
+              >
+                <Chrome className="mr-2 h-5 w-5" />
+                Continue with Google
+              </Button>
+
+              <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full border-white/20" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-white bg-blue-900">
+                    Or continue with email
+                  </span>
+                </div>
+              </div>
+
               <form className="space-y-4 md:space-y-6" onSubmit={handleLogin}>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="email" className="text-white">
-                      Email address
-                    </Label>
+                    <Label htmlFor="email" className="text-white">Email address</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
@@ -87,9 +124,7 @@ export default function Login() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="password" className="text-white">
-                      Password
-                    </Label>
+                    <Label htmlFor="password" className="text-white">Password</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
@@ -115,9 +150,8 @@ export default function Login() {
                   {loading ? "Signing in..." : "Sign in"}
                 </Button>
 
-                <div className="flex flex-col space-y-4 text-center">
+                <div className="text-center">
                   <Button
-                    type="button"
                     variant="link"
                     className="text-sm text-blue-300 hover:text-blue-200"
                     onClick={() => navigate("/register")}

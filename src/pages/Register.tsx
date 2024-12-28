@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Lock, Phone, AtSign } from "lucide-react";
+import { User, Mail, Lock, Phone, AtSign, Chrome } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Separator } from "@/components/ui/separator";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -65,6 +66,25 @@ export default function Register() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 p-4 lg:p-8">
       <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-8 items-center">
@@ -86,6 +106,28 @@ export default function Register() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Google Sign In Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full mb-6 bg-white hover:bg-gray-100 text-gray-900"
+                onClick={handleGoogleSignIn}
+              >
+                <Chrome className="mr-2 h-5 w-5" />
+                Continue with Google
+              </Button>
+
+              <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full border-white/20" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-white bg-blue-900">
+                    Or continue with email
+                  </span>
+                </div>
+              </div>
+
               <form className="space-y-4 md:space-y-6" onSubmit={handleRegister}>
                 <div className="space-y-4">
                   <div>
