@@ -127,6 +127,11 @@ const Index = () => {
     },
     onError: (error: Error) => {
       if (error.message === "You must be logged in to RSVP") {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in or sign up to RSVP for this event.",
+          variant: "destructive",
+        });
         navigate("/login");
       } else {
         toast({
