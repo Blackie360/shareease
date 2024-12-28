@@ -39,6 +39,7 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
   });
 
   const sendConfirmationEmail = async (userEmail: string) => {
+    console.log("Attempting to send confirmation email to:", userEmail);
     try {
       const emailContent = `
         <h1>Thank you for registering for ${eventTitle}!</h1>
@@ -55,7 +56,13 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw error;
+      }
+      
+      console.log("Confirmation email sent successfully");
+      return true;
     } catch (error) {
       console.error("Error sending confirmation email:", error);
       throw error;
@@ -76,6 +83,7 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
         return;
       }
 
+      // First create the registration
       const { error: registrationError } = await supabase
         .from("registrations")
         .insert({
@@ -91,14 +99,21 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
 
       if (registrationError) throw registrationError;
 
+      // Then try to send the confirmation email
+      let emailSent = false;
       try {
-        await sendConfirmationEmail(user.email!);
+        emailSent = await sendConfirmationEmail(user.email!);
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
+      }
+
+      // Show appropriate success message based on email status
+      if (emailSent) {
         toast({
           title: "Success!",
           description: "Your RSVP has been confirmed and a confirmation email has been sent.",
         });
-      } catch (emailError) {
-        console.error("Email sending failed:", emailError);
+      } else {
         toast({
           title: "RSVP Successful",
           description: "Your RSVP was confirmed but we couldn't send the confirmation email. Please check your event details in the dashboard.",
