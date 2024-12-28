@@ -88,7 +88,7 @@ export default function EventDashboard() {
 
   if (createdEventsLoading || attendedEventsLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="flex justify-center items-center h-64">
@@ -105,10 +105,10 @@ export default function EventDashboard() {
   ) || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
       <SidebarProvider>
-        <div className="flex min-h-[calc(100vh-4rem)] flex-col md:flex-row">
+        <div className="flex-1 flex min-h-[calc(100vh-4rem)] flex-col md:flex-row bg-background">
           <DashboardSidebar />
           <main className="flex-1 p-4 md:p-8 w-full overflow-x-hidden">
             <div className="max-w-7xl mx-auto space-y-6">
