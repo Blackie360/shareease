@@ -108,45 +108,51 @@ export default function EventDashboard() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <SidebarProvider>
-        <div className="flex min-h-[calc(100vh-4rem)]">
+        <div className="flex min-h-[calc(100vh-4rem)] flex-col md:flex-row">
           <DashboardSidebar />
-          <main className="flex-1 p-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold tracking-tight">My Events</h1>
-                <Button onClick={() => navigate("/events/create")} size="sm">
+          <main className="flex-1 p-4 md:p-8 w-full overflow-x-hidden">
+            <div className="max-w-7xl mx-auto space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">My Events</h1>
+                <Button onClick={() => navigate("/events/create")} size="sm" className="w-full sm:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   Create New Event
                 </Button>
               </div>
 
-              <Tabs defaultValue="created" className="space-y-8">
-                <TabsList className="w-full sm:w-auto">
+              <Tabs defaultValue="created" className="space-y-6">
+                <TabsList className="w-full sm:w-auto flex">
                   <TabsTrigger value="created" className="flex-1 sm:flex-none">Events I Created</TabsTrigger>
                   <TabsTrigger value="attending" className="flex-1 sm:flex-none">Events I'm Attending</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="created" className="space-y-8">
-                  <EventStats
-                    totalEvents={createdEvents?.length || 0}
-                    totalRSVPs={totalRSVPs}
-                    publishedEvents={createdEvents?.filter((event) => event.is_published).length || 0}
-                  />
-                  <div className="bg-white rounded-lg shadow-sm">
-                    <EventsTable 
-                      events={createdEvents || []} 
-                      onDelete={handleDelete}
-                      showActions={true}
+                <TabsContent value="created" className="space-y-6">
+                  <div className="grid gap-6">
+                    <EventStats
+                      totalEvents={createdEvents?.length || 0}
+                      totalRSVPs={totalRSVPs}
+                      publishedEvents={createdEvents?.filter((event) => event.is_published).length || 0}
                     />
+                    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <EventsTable 
+                          events={createdEvents || []} 
+                          onDelete={handleDelete}
+                          showActions={true}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="attending">
-                  <div className="bg-white rounded-lg shadow-sm">
-                    <EventsTable 
-                      events={attendedEvents || []} 
-                      showActions={false}
-                    />
+                  <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <EventsTable 
+                        events={attendedEvents || []} 
+                        showActions={false}
+                      />
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
