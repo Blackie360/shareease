@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ interface RSVPFormProps {
   eventTitle: string;
   isOnline: boolean;
   meetingUrl?: string;
+  onSuccess?: () => void;
 }
 
 interface RSVPFormData {
@@ -23,10 +24,28 @@ interface RSVPFormData {
   additionalNotes: string;
 }
 
-export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }: RSVPFormProps) {
+export function RSVPForm({ 
+  eventId, 
+  ticketId, 
+  eventTitle, 
+  isOnline, 
+  meetingUrl,
+  onSuccess 
+}: RSVPFormProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    };
+    getUser();
+  }, []);
 
   const form = useForm<RSVPFormData>({
     defaultValues: {
@@ -120,6 +139,7 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
         });
       }
 
+      onSuccess?.();
       navigate("/dashboard");
     } catch (error: any) {
       toast({
@@ -135,6 +155,11 @@ export function RSVPForm({ eventId, ticketId, eventTitle, isOnline, meetingUrl }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {userEmail && (
+          <div className="text-sm text-muted-foreground mb-4">
+            Registering with email: {userEmail}
+          </div>
+        )}
         <RSVPFormFields form={form} />
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Submitting..." : "Confirm RSVP"}
