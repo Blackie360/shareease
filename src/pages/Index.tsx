@@ -159,10 +159,6 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900">Events</h1>
-          <Button onClick={handleCreateEvent} className="bg-primary hover:bg-primary/90">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Event
-          </Button>
         </div>
 
         <div className="max-w-2xl mx-auto mb-12">
