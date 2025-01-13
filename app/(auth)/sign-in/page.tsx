@@ -10,20 +10,18 @@ import {
 } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { SignInFormSchema } from "@/lib/auth-schema"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
  
-const formSchema = z.object({
-  email: z.string().min(2).max(50),
-  password: z.string().min(2).max(50),
-})
+
 
 const SignIn = () => {
      // 1. Define your form.
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof SignInFormSchema>>({
+    resolver: zodResolver(SignInFormSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -31,7 +29,7 @@ const SignIn = () => {
   })
  
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof SignInFormSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     console.log(values)
@@ -72,7 +70,7 @@ const SignIn = () => {
                 </FormItem>
               )}
             />
-        <Button type="submit">Submit</Button>
+        <Button className="w-full" type="submit">Submit</Button>
       </form>
     </Form>
   </CardContent>
