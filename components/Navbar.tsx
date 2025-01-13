@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Music } from 'lucide-react'
+import { buttonVariants } from "./ui/button"
 
 export function Navbar() {
   return (
@@ -18,7 +19,7 @@ export function Navbar() {
         <Link className="text-sm font-medium hover:underline underline-offset-4" href="#">
           About
         </Link>
-        <Link className="text-sm font-medium hover:underline underline-offset-4" href="#">
+        <Link href="/sign-in" className={buttonVariants()}>
           Sign In
         </Link>
       </nav>
