@@ -1,4 +1,3 @@
-import { Navbar } from "@/components/Navbar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Headphones, Heart, Music, Search, Share2, Users } from 'lucide-react'
