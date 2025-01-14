@@ -1,25 +1,18 @@
-"use client"
-import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { formSchema } from "@/lib/auth-schema"
+'use client'
+
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod"
-import Link from "next/link"
-import { useForm } from "react-hook-form"
 import { z } from "zod"
- 
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
+import { formSchema } from "@/lib/auth-schema";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "@/hooks/use-toast";
 
-
-const SignUp = () => {
-     // 1. Define your form.
+export default function SignUp() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -28,37 +21,60 @@ const SignUp = () => {
       password: "",
     },
   })
- 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values)
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log("Form values:", values); // Log the form values
+    const { name, email, password } = values;
+    const payload = {
+      email,
+      password,
+      name,
+      callbackURL: "/sign-in",
+    };
+    console.log("Payload:", payload); // Log the payload
+    const { error } = await authClient.signUp.email(payload, {
+      onRequest: () => {
+        toast({
+          title: "Please wait...",
+        })
+      },
+      onSuccess: () => {
+        form.reset()
+      },
+      onError: (ctx) => {
+        toast({ title: ctx.error.message, variant: 'destructive' });
+        form.setError('email', {
+          type: 'manual',
+          message: ctx.error.message
+        })
+      },
+    });
   }
+
   return (
-    <Card className=" w-full max-w-md mx-auto">
-  <CardHeader>
-    <CardTitle>Sign Up</CardTitle>
-    <CardDescription>Create your account to get started  </CardDescription>
-  </CardHeader>
-  <CardContent>
-  <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>name</FormLabel>
-              <FormControl>
-                <Input placeholder="john Doe" {...field} />
-              </FormControl>
-              
-             
-            </FormItem>
-          )}
-        />
-        <FormField
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle>Sign Up</CardTitle>
+        <CardDescription>Create your account to get started.</CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="john doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
@@ -84,21 +100,20 @@ const SignUp = () => {
                 </FormItem>
               )}
             />
-        <Button className="w-full" type="submit">Submit</Button>
-      </form>
-    </Form>
-  </CardContent>
-  <CardFooter className='flex justify-center'>
+            <Button className="w-full" type="submit">Submit</Button>
+          </form>
+        </Form>
+      </CardContent>
+
+      <CardFooter className='flex justify-center'>
         <p className='text-sm text-muted-foreground'>
-         Already have an account ?{' '}
+          Already have an account?{' '}
           <Link href='/sign-in' className='text-primary hover:underline'>
-            Sign In
+            Sign in
           </Link>
         </p>
       </CardFooter>
-</Card>
+    </Card>
 
   )
 }
-
-export default SignUp
