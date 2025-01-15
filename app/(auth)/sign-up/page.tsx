@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod"
+
 import { z } from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -23,16 +24,13 @@ export default function SignUp() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Form values:", values); // Log the form values
     const { name, email, password } = values;
-    const payload = {
+    const { data, error } = await authClient.signUp.email({
       email,
       password,
       name,
       callbackURL: "/sign-in",
-    };
-    console.log("Payload:", payload); // Log the payload
-    const { error } = await authClient.signUp.email(payload, {
+    }, {
       onRequest: () => {
         toast({
           title: "Please wait...",
@@ -42,11 +40,7 @@ export default function SignUp() {
         form.reset()
       },
       onError: (ctx) => {
-        toast({ title: ctx.error.message, variant: 'destructive' });
-        form.setError('email', {
-          type: 'manual',
-          message: ctx.error.message
-        })
+        alert(ctx.error.message);
       },
     });
   }
