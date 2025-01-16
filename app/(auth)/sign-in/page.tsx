@@ -52,7 +52,7 @@ export default function SignIn() {
 					setPendingCredentials(true);
 				},
 				onSuccess: async () => {
-					router.push("/");
+					router.push("/dashboard");
 					router.refresh();
 				},
 				onError: (ctx: ErrorContext) => {
@@ -78,7 +78,7 @@ export default function SignIn() {
 					setPendingGithub(true);
 				},
 				onSuccess: async () => {
-					router.push("/");
+					router.push("/dashboard");
 					router.refresh();
 				},
 				onError: (ctx: ErrorContext) => {
