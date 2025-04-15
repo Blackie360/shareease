@@ -28,9 +28,13 @@ function SubmitButton() {
   )
 }
 
-export default function LoginForm() {
+interface LoginFormProps {
+  initialError?: string | null
+}
+
+export default function LoginForm({ initialError = null }: LoginFormProps) {
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(initialError)
   const [success, setSuccess] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<{
     google: boolean
@@ -40,8 +44,18 @@ export default function LoginForm() {
     github: false,
   })
 
+  // Check for auth in progress on component mount
+  useEffect(() => {
+    const authProvider = localStorage.getItem("authInProgress")
+    if (authProvider) {
+      // Clear the flag
+      localStorage.removeItem("authInProgress")
+    }
+  }, [])
+
   // Handle form submission
   const handleSubmit = async (formData: FormData) => {
+    setError(null)
     try {
       const result = await signIn(null, formData)
       if (result.error) {
@@ -50,6 +64,7 @@ export default function LoginForm() {
         setSuccess(true)
       }
     } catch (err) {
+      console.error("Login error:", err)
       setError("An unexpected error occurred. Please try again.")
     }
   }
@@ -57,16 +72,23 @@ export default function LoginForm() {
   // Handle OAuth sign in
   const handleOAuthSignIn = async (provider: "google" | "github") => {
     setIsLoading((prev) => ({ ...prev, [provider]: true }))
+    setError(null)
+
     try {
       const result = await signInWithOAuth(provider)
+
       if (result.error) {
         setError(result.error)
         setIsLoading((prev) => ({ ...prev, [provider]: false }))
       } else if (result.url) {
+        // Before redirecting, store that we're in the middle of authentication
+        localStorage.setItem("authInProgress", provider)
+
         // Redirect to the OAuth provider
         window.location.href = result.url
       }
     } catch (err) {
+      console.error(`Error during ${provider} sign in:`, err)
       setError("An unexpected error occurred. Please try again.")
       setIsLoading((prev) => ({ ...prev, [provider]: false }))
     }

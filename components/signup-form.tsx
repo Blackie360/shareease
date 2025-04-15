@@ -57,16 +57,24 @@ export default function SignUpForm() {
   // Handle OAuth sign in
   const handleOAuthSignIn = async (provider: "google" | "github") => {
     setIsLoading((prev) => ({ ...prev, [provider]: true }))
+    setError(null) // Clear any previous errors
+
     try {
       const result = await signInWithOAuth(provider)
+
       if (result.error) {
         setError(result.error)
         setIsLoading((prev) => ({ ...prev, [provider]: false }))
       } else if (result.url) {
+        // Before redirecting, store that we're in the middle of authentication
+        // This can be useful for showing a loading state if needed
+        localStorage.setItem("authInProgress", provider)
+
         // Redirect to the OAuth provider
         window.location.href = result.url
       }
     } catch (err) {
+      console.error(`Error during ${provider} sign in:`, err)
       setError("An unexpected error occurred. Please try again.")
       setIsLoading((prev) => ({ ...prev, [provider]: false }))
     }

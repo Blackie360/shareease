@@ -50,20 +50,31 @@ export async function signIn(prevState: any, formData: FormData) {
   }
 }
 
+// Update the signInWithOAuth function to ensure it works correctly
 export async function signInWithOAuth(provider: "google" | "github") {
   const cookieStore = cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
+    // Make sure we have the correct redirect URL
+    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: provider,
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+        redirectTo: redirectTo,
+        // Add scopes for better profile access
+        scopes: provider === "google" ? "email profile" : "user:email",
       },
     })
 
     if (error) {
+      console.error(`${provider} OAuth error:`, error)
       return { error: error.message }
+    }
+
+    if (!data.url) {
+      return { error: "Failed to get authentication URL" }
     }
 
     return { url: data.url }

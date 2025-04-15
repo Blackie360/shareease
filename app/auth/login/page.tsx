@@ -3,7 +3,11 @@ import { redirect } from "next/navigation"
 import LoginForm from "@/components/login-form"
 import Link from "next/link"
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
   // If Supabase is not configured, show setup message
   if (!isSupabaseConfigured) {
     return (
@@ -30,6 +34,9 @@ export default async function LoginPage() {
     redirect("/dashboard")
   }
 
+  // Get error message from URL if present
+  const errorMessage = searchParams.error ? decodeURIComponent(searchParams.error as string) : null
+
   return (
     <div className="flex min-h-screen flex-col">
       <div className="container flex h-16 items-center justify-between py-6">
@@ -52,7 +59,7 @@ export default async function LoginPage() {
         </Link>
       </div>
       <div className="flex flex-1 items-center justify-center px-4 py-12">
-        <LoginForm />
+        <LoginForm initialError={errorMessage} />
       </div>
     </div>
   )
