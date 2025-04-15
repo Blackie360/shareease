@@ -14,6 +14,9 @@ import {
 } from "./supabase/database"
 import { revalidatePath } from "next/cache"
 
+// Define the deployed URL
+const DEPLOYED_URL = "https://bills2025.vercel.app"
+
 // Auth actions (already implemented)
 export async function signIn(prevState: any, formData: FormData) {
   // Check if formData is valid
@@ -50,14 +53,16 @@ export async function signIn(prevState: any, formData: FormData) {
   }
 }
 
-// Update the signInWithOAuth function to ensure it works correctly
+// Update the signInWithOAuth function to use the deployed URL
 export async function signInWithOAuth(provider: "google" | "github") {
   const cookieStore = cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
-    // Make sure we have the correct redirect URL
-    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+    // Use the hardcoded deployed URL for the redirect
+    const redirectTo = `${DEPLOYED_URL}/auth/callback`
+
+    console.log(`OAuth redirect URL: ${redirectTo}`)
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: provider,
@@ -102,12 +107,15 @@ export async function signUp(prevState: any, formData: FormData) {
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
+    // Use the hardcoded deployed URL for the redirect
+    const redirectTo = `${DEPLOYED_URL}/auth/callback`
+
     const { error } = await supabase.auth.signUp({
       email: email.toString(),
       password: password.toString(),
       options: {
         // Email confirmation is disabled on Supabase dashboard
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+        emailRedirectTo: redirectTo,
       },
     })
 
@@ -315,10 +323,10 @@ export async function exportBillToCSV(billId: string) {
   }
 }
 
-// Update the shareBill function to support new platforms
+// Update the shareBill function to use the deployed URL
 export async function shareBill(billId: string, platform: SharePlatform) {
   try {
-    const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/bills/${billId}`
+    const shareUrl = `${DEPLOYED_URL}/bills/${billId}`
 
     // Generate the appropriate share URL based on the platform
     let shareLink = ""

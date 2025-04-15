@@ -83,6 +83,7 @@ export default function LoginForm({ initialError = null }: LoginFormProps) {
       } else if (result.url) {
         // Before redirecting, store that we're in the middle of authentication
         localStorage.setItem("authInProgress", provider)
+        console.log(`Redirecting to OAuth provider: ${result.url}`)
 
         // Redirect to the OAuth provider
         window.location.href = result.url
