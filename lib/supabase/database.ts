@@ -5,12 +5,9 @@ import type {
   Bill,
   BillParticipant,
   BillWithParticipants,
-  InvitationStatus,
   NewBill,
   NewBillParticipant,
   NewParticipant,
-  Notification,
-  NotificationType,
   Participant,
 } from "@/types"
 import { revalidatePath } from "next/cache"
@@ -217,67 +214,8 @@ export async function createParticipant(participant: NewParticipant) {
   return data as Participant
 }
 
-// Update the findOrCreateParticipant function to properly link participants with user accounts
 export async function findOrCreateParticipant(participant: NewParticipant) {
   const supabase = createClient()
-
-  // First, check if the email is associated with a registered user
-  if (participant.email) {
-    try {
-      // Try to find the user by email
-      const { data: userData, error: userError } = await supabase.auth.admin.listUsers({
-        filter: {
-          email: participant.email,
-        },
-      })
-
-      if (!userError && userData && userData.users.length > 0) {
-        const userId = userData.users[0].id
-
-        // Check if this user already has a participant record
-        const { data: existingParticipant, error: participantError } = await supabase
-          .from("participants")
-          .select("*")
-          .eq("user_id", userId)
-          .single()
-
-        if (!participantError && existingParticipant) {
-          // Update the existing participant with the new name if provided
-          if (participant.name && participant.name !== existingParticipant.name) {
-            const { data: updatedParticipant, error: updateError } = await supabase
-              .from("participants")
-              .update({ name: participant.name })
-              .eq("id", existingParticipant.id)
-              .select()
-              .single()
-
-            if (!updateError) {
-              return updatedParticipant as Participant
-            }
-          }
-
-          return existingParticipant as Participant
-        }
-
-        // Create a new participant linked to the user
-        const { data: newParticipant, error: createError } = await supabase
-          .from("participants")
-          .insert({
-            ...participant,
-            user_id: userId,
-          })
-          .select()
-          .single()
-
-        if (!createError) {
-          return newParticipant as Participant
-        }
-      }
-    } catch (error) {
-      console.error("Error finding user by email:", error)
-      // Continue with normal participant creation
-    }
-  }
 
   // Try to find existing participant by email or phone
   let query = supabase.from("participants").select("*")
@@ -310,15 +248,8 @@ export async function findOrCreateParticipant(participant: NewParticipant) {
 export async function addParticipantToBill(billParticipant: NewBillParticipant) {
   const supabase = createClient()
 
-  // Add the participant to the bill with invitation_status set to pending
-  const { data, error } = await supabase
-    .from("bill_participants")
-    .insert({
-      ...billParticipant,
-      invitation_status: "pending",
-    })
-    .select()
-    .single()
+  // Remove the is_confirmed field from the insert
+  const { data, error } = await supabase.from("bill_participants").insert(billParticipant).select().single()
 
   if (error) {
     console.error("Error adding participant to bill:", error)
@@ -348,34 +279,12 @@ export async function updateBillParticipant(id: string, billParticipant: Partial
   return data as BillParticipant
 }
 
-export async function updateInvitationStatus(id: string, status: InvitationStatus) {
-  const supabase = createClient()
-
-  const { data, error } = await supabase
-    .from("bill_participants")
-    .update({ invitation_status: status })
-    .eq("id", id)
-    .select()
-    .single()
-
-  if (error) {
-    console.error("Error updating invitation status:", error)
-    throw new Error("Failed to update invitation status")
-  }
-
-  revalidatePath(`/bills/${data.bill_id}`)
-  return data as BillParticipant
-}
-
 export async function confirmBillParticipant(id: string) {
   const supabase = createClient()
 
   const { data, error } = await supabase
     .from("bill_participants")
-    .update({
-      is_confirmed: true,
-      invitation_status: "accepted",
-    })
+    .update({ is_confirmed: true })
     .eq("id", id)
     .select()
     .single()
@@ -491,108 +400,4 @@ export async function getUnconfirmedParticipants(billId: string) {
   }
 
   return data as (BillParticipant & { participant: Participant })[]
-}
-
-// Notifications
-export async function createNotification(notification: {
-  user_id: string
-  bill_id: string
-  bill_participant_id: string
-  type: NotificationType
-  title: string
-  message: string
-}) {
-  const supabase = createClient()
-
-  const { data, error } = await supabase
-    .from("notifications")
-    .insert({
-      ...notification,
-      is_read: false,
-    })
-    .select()
-    .single()
-
-  if (error) {
-    console.error("Error creating notification:", error)
-    throw new Error("Failed to create notification")
-  }
-
-  return data as Notification
-}
-
-export async function getNotificationsForUser(userId: string) {
-  const supabase = createClient()
-
-  const { data, error } = await supabase
-    .from("notifications")
-    .select(`
-      *,
-      bill:bills(
-        id,
-        title,
-        total_amount,
-        currency,
-        date
-      )
-    `)
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("Error fetching notifications:", error)
-    throw new Error("Failed to fetch notifications")
-  }
-
-  return data
-}
-
-export async function getUnreadNotificationCount(userId: string) {
-  const supabase = createClient()
-
-  const { count, error } = await supabase
-    .from("notifications")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .eq("is_read", false)
-
-  if (error) {
-    console.error("Error counting unread notifications:", error)
-    throw new Error("Failed to count unread notifications")
-  }
-
-  return count || 0
-}
-
-export async function markNotificationAsRead(id: string) {
-  const supabase = createClient()
-
-  const { error } = await supabase.from("notifications").update({ is_read: true }).eq("id", id)
-
-  if (error) {
-    console.error("Error marking notification as read:", error)
-    throw new Error("Failed to mark notification as read")
-  }
-}
-
-export async function markAllNotificationsAsRead(userId: string) {
-  const supabase = createClient()
-
-  const { error } = await supabase.from("notifications").update({ is_read: true }).eq("user_id", userId)
-
-  if (error) {
-    console.error("Error marking all notifications as read:", error)
-    throw new Error("Failed to mark all notifications as read")
-  }
-}
-
-export async function deleteNotification(id: string) {
-  const supabase = createClient()
-
-  const { error } = await supabase.from("notifications").delete().eq("id", id)
-
-  if (error) {
-    console.error("Error deleting notification:", error)
-    throw new Error("Failed to delete notification")
-  }
 }

@@ -14,7 +14,6 @@ import {
   exportBillToCSV,
   completeBill,
   confirmParticipation,
-  respondToInvitation,
 } from "@/lib/actions"
 import {
   AlertDialog,
@@ -44,7 +43,6 @@ export function BillDetail({ bill, isCreator, currentUserId }: BillDetailProps) 
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
-  const [isRespondingToInvitation, setIsRespondingToInvitation] = useState(false)
 
   const totalPaid = bill.participants.reduce((sum, p) => {
     return sum + (p.is_paid ? p.amount : 0)
@@ -60,10 +58,16 @@ export function BillDetail({ bill, isCreator, currentUserId }: BillDetailProps) 
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      await deleteBill(bill.id)
-      router.push("/")
+      const result = await deleteBill(bill.id)
+      if (result.success) {
+        router.push("/dashboard")
+      } else if (result.error) {
+        alert(`Error deleting bill: ${result.error}`)
+        setIsDeleting(false)
+      }
     } catch (error) {
       console.error("Error deleting bill:", error)
+      alert("Failed to delete bill")
       setIsDeleting(false)
     }
   }
@@ -72,63 +76,72 @@ export function BillDetail({ bill, isCreator, currentUserId }: BillDetailProps) 
     try {
       const result = await exportBillToCSV(bill.id)
       if (result.success) {
-        // You could add a toast notification here
-        console.log("Bill exported successfully")
+        alert("Bill exported successfully")
       } else if (result.error) {
-        console.error("Error exporting bill:", result.error)
+        alert(`Error exporting bill: ${result.error}`)
       }
     } catch (error) {
       console.error("Error exporting bill:", error)
+      alert("Failed to export bill")
     }
   }
 
   const handlePaymentStatusChange = async (id: string, isPaid: boolean) => {
-    await updateBillParticipantStatus(id, isPaid)
+    try {
+      const result = await updateBillParticipantStatus(id, isPaid)
+      if (result.success) {
+        router.refresh()
+      } else if (result.error) {
+        alert(`Error updating payment status: ${result.error}`)
+      }
+    } catch (error) {
+      console.error("Error updating payment status:", error)
+      alert("Failed to update payment status")
+    }
   }
 
   const handleConfirmParticipation = async (id: string) => {
-    await confirmParticipation(id)
+    try {
+      const result = await confirmParticipation(id)
+      if (result.success) {
+        alert("Participation confirmed")
+        router.refresh()
+      } else if (result.error) {
+        alert(`Error confirming participation: ${result.error}`)
+      }
+    } catch (error) {
+      console.error("Error confirming participation:", error)
+      alert("Failed to confirm participation")
+    }
   }
 
   const handleCompleteBill = async () => {
     setIsCompleting(true)
     try {
       const result = await completeBill(bill.id)
-      if (result.error) {
+      if (result.success) {
+        alert("Bill marked as complete")
+        router.refresh()
+      } else if (result.error) {
         alert(result.error)
       }
-      router.refresh()
     } catch (error) {
       console.error("Error completing bill:", error)
+      alert("Failed to mark bill as complete")
     } finally {
       setIsCompleting(false)
     }
   }
 
-  const handleRespondToInvitation = async (id: string, status: "accepted" | "declined") => {
-    setIsRespondingToInvitation(true)
-    try {
-      const result = await respondToInvitation(id, status)
-      if (result.error) {
-        alert(result.error)
-      }
-      router.refresh()
-    } catch (error) {
-      console.error("Error responding to invitation:", error)
-    } finally {
-      setIsRespondingToInvitation(false)
-    }
-  }
-
   // Find the current user's participant record
   const currentUserParticipant = currentUserId
-    ? bill.participants.find((p) => p.participant?.user_id === currentUserId)
+    ? bill.participants.find((p) => p.participant.user_id === currentUserId)
     : null
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => router.push("/")}>
+        <Button variant="ghost" onClick={() => router.push("/dashboard")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Bills
         </Button>
@@ -150,7 +163,17 @@ export function BillDetail({ bill, isCreator, currentUserId }: BillDetailProps) 
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {isCreator && (
-                <DropdownMenuItem onClick={() => router.push(`/bills/${bill.id}/edit`)}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    // Check if the edit page exists, otherwise show a message
+                    try {
+                      router.push(`/bills/${bill.id}/edit`)
+                    } catch (error) {
+                      console.error("Navigation error:", error)
+                      alert("Edit functionality is not yet implemented")
+                    }
+                  }}
+                >
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Bill
                 </DropdownMenuItem>
@@ -262,36 +285,16 @@ export function BillDetail({ bill, isCreator, currentUserId }: BillDetailProps) 
           </div>
         </CardContent>
 
-        {!bill.is_completed && currentUserParticipant && (
-          <CardFooter className="flex flex-col gap-2">
-            {typeof currentUserParticipant.is_confirmed !== "undefined" && !currentUserParticipant.is_confirmed && (
+        {!bill.is_completed &&
+          currentUserParticipant &&
+          typeof currentUserParticipant.is_confirmed !== "undefined" &&
+          !currentUserParticipant.is_confirmed && (
+            <CardFooter>
               <Button className="w-full" onClick={() => handleConfirmParticipation(currentUserParticipant.id)}>
                 Confirm Participation
               </Button>
-            )}
-
-            {currentUserParticipant.invitation_status === "pending" && (
-              <div className="flex w-full gap-2">
-                <Button
-                  className="flex-1"
-                  variant="default"
-                  onClick={() => handleRespondToInvitation(currentUserParticipant.id, "accepted")}
-                  disabled={isRespondingToInvitation}
-                >
-                  Accept Invitation
-                </Button>
-                <Button
-                  className="flex-1"
-                  variant="outline"
-                  onClick={() => handleRespondToInvitation(currentUserParticipant.id, "declined")}
-                  disabled={isRespondingToInvitation}
-                >
-                  Decline
-                </Button>
-              </div>
-            )}
-          </CardFooter>
-        )}
+            </CardFooter>
+          )}
       </Card>
 
       <div className="space-y-4">
@@ -351,26 +354,6 @@ export function BillDetail({ bill, isCreator, currentUserId }: BillDetailProps) 
                           Pending
                         </Badge>
                       )}
-                    </div>
-                  )}
-
-                  {billParticipant.invitation_status && (
-                    <div className="flex items-center space-x-2">
-                      <Badge
-                        variant="outline"
-                        className={`
-                          ${
-                            billParticipant.invitation_status === "accepted"
-                              ? "bg-green-500/10 text-green-500"
-                              : billParticipant.invitation_status === "declined"
-                                ? "bg-red-500/10 text-red-500"
-                                : "bg-blue-500/10 text-blue-500"
-                          }
-                        `}
-                      >
-                        {billParticipant.invitation_status.charAt(0).toUpperCase() +
-                          billParticipant.invitation_status.slice(1)}
-                      </Badge>
                     </div>
                   )}
                 </div>

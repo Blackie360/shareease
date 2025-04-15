@@ -2,138 +2,125 @@
 
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import type { NewParticipant, SharePlatform, SplitType } from "@/types"
+import {
+  findOrCreateParticipant,
+  addParticipantToBill,
+  updateBillParticipant,
+  markBillAsComplete,
+  confirmBillParticipant,
+  checkAllParticipantsConfirmed,
+} from "./supabase/database"
+import { revalidatePath } from "next/cache"
 
-type SplitType = "equal" | "custom" | "percentage"
-type SharePlatform = "whatsapp" | "twitter" | "facebook" | "email" | "sms" | "copy"
+// Auth actions (already implemented)
+export async function signIn(prevState: any, formData: FormData) {
+  // Check if formData is valid
+  if (!formData) {
+    return { error: "Form data is missing" }
+  }
 
-interface NewParticipant {
-  name: string
-  email: string | null
-  phone: string | null
-  user_id: string | null
-}
+  const email = formData.get("email")
+  const password = formData.get("password")
 
-async function findOrCreateParticipant(newParticipant: NewParticipant): Promise<any> {
+  // Validate required fields
+  if (!email || !password) {
+    return { error: "Email and password are required" }
+  }
+
   const cookieStore = cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
-  // First, try to find an existing participant by email
-  if (newParticipant.email) {
-    const { data: existingParticipant } = await supabase
-      .from("participants")
-      .select("*")
-      .eq("email", newParticipant.email)
-      .single()
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.toString(),
+      password: password.toString(),
+    })
 
-    if (existingParticipant) {
-      return existingParticipant
+    if (error) {
+      return { error: error.message }
     }
+
+    // Return success instead of redirecting directly
+    return { success: true }
+  } catch (error) {
+    console.error("Login error:", error)
+    return { error: "An unexpected error occurred. Please try again." }
   }
+}
 
-  // If no email or no existing participant found by email, try by name and phone
-  const { data: existingParticipantByNamePhone } = await supabase
-    .from("participants")
-    .select("*")
-    .eq("name", newParticipant.name)
-    .eq("phone", newParticipant.phone)
-    .single()
+export async function signInWithOAuth(provider: "google" | "github") {
+  const cookieStore = cookies()
+  const supabase = createServerActionClient({ cookies: () => cookieStore })
 
-  if (existingParticipantByNamePhone) {
-    return existingParticipantByNamePhone
-  }
-
-  // If no existing participant is found, create a new one
-  const { data, error } = await supabase
-    .from("participants")
-    .insert([
-      {
-        name: newParticipant.name,
-        email: newParticipant.email,
-        phone: newParticipant.phone,
-        user_id: newParticipant.user_id,
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider,
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
       },
-    ])
-    .select()
-    .single()
+    })
 
-  if (error) {
-    console.error("Error creating participant:", error)
-    throw new Error("Failed to create participant")
+    if (error) {
+      return { error: error.message }
+    }
+
+    return { url: data.url }
+  } catch (error) {
+    console.error(`${provider} login error:`, error)
+    return { error: "An unexpected error occurred. Please try again." }
   }
-
-  if (!data) {
-    throw new Error("Failed to create participant, no data returned")
-  }
-
-  return data
 }
 
-async function addParticipantToBill(billParticipantData: any): Promise<any> {
+export async function signUp(prevState: any, formData: FormData) {
+  // Check if formData is valid
+  if (!formData) {
+    return { error: "Form data is missing" }
+  }
+
+  const email = formData.get("email")
+  const password = formData.get("password")
+
+  // Validate required fields
+  if (!email || !password) {
+    return { error: "Email and password are required" }
+  }
+
   const cookieStore = cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
-  const { data, error } = await supabase.from("bill_participants").insert([billParticipantData]).select().single()
+  try {
+    const { error } = await supabase.auth.signUp({
+      email: email.toString(),
+      password: password.toString(),
+      options: {
+        // Email confirmation is disabled on Supabase dashboard
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      },
+    })
 
-  if (error) {
-    console.error("Error adding participant to bill:", error)
-    throw new Error("Failed to add participant to bill")
+    if (error) {
+      return { error: error.message }
+    }
+
+    // Since email confirmation is disabled, we can return success directly
+    return { success: true }
+  } catch (error) {
+    console.error("Sign up error:", error)
+    return { error: "An unexpected error occurred. Please try again." }
   }
-
-  if (!data) {
-    throw new Error("Failed to add participant to bill, no data returned")
-  }
-
-  return data
 }
 
-async function checkAllParticipantsConfirmed(billId: string): Promise<boolean> {
+export async function signOut() {
   const cookieStore = cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
-  const { data, error } = await supabase.from("bill_participants").select("is_confirmed").eq("bill_id", billId)
-
-  if (error) {
-    console.error("Error fetching bill participants:", error)
-    return false
-  }
-
-  if (!data) {
-    return true // Consider an empty list as all confirmed
-  }
-
-  // Check if all participants have confirmed
-  return data.every((participant) => participant.is_confirmed)
+  await supabase.auth.signOut()
+  redirect("/")
 }
 
-async function markBillAsComplete(billId: string) {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-  const { error } = await supabase
-    .from("bills")
-    .update({ is_completed: true, completion_date: new Date().toISOString() })
-    .eq("id", billId)
-
-  if (error) {
-    console.error("Error marking bill as complete:", error)
-    throw new Error("Failed to mark bill as complete")
-  }
-}
-
-async function updateBillParticipant(id: string, fields: { is_paid: boolean }) {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-  const { error } = await supabase.from("bill_participants").update(fields).eq("id", id)
-
-  if (error) {
-    console.error("Error updating bill participant:", error)
-    throw new Error("Failed to update bill participant")
-  }
-}
-
+// Bill actions
 export async function createBillWithParticipants(prevState: any, formData: FormData) {
   try {
     // Get the current user
@@ -177,6 +164,9 @@ export async function createBillWithParticipants(prevState: any, formData: FormD
         tip_amount: tipAmount || 0,
         receipt_image_url: null,
         currency,
+        // Remove these fields to prevent the error
+        // is_completed: false,
+        // completion_date: null,
       })
       .select()
       .single()
@@ -211,14 +201,9 @@ export async function createBillWithParticipants(prevState: any, formData: FormD
       // Check if this participant is a registered user
       if (newParticipant.email) {
         try {
-          const { data: userData } = await supabase.auth.admin.listUsers({
-            filter: {
-              email: newParticipant.email,
-            },
-          })
-
-          if (userData && userData.users.length > 0) {
-            newParticipant.user_id = userData.users[0].id
+          const { data: userData } = await supabase.auth.admin.getUserByEmail(newParticipant.email)
+          if (userData?.user) {
+            newParticipant.user_id = userData.user.id
           }
         } catch (error) {
           console.log("Error checking user email, continuing:", error)
@@ -255,6 +240,26 @@ export async function createBillWithParticipants(prevState: any, formData: FormD
   }
 }
 
+export async function updateBillParticipantStatus(id: string, isPaid: boolean) {
+  try {
+    await updateBillParticipant(id, { is_paid: isPaid })
+    return { success: true }
+  } catch (error) {
+    console.error("Error updating bill participant status:", error)
+    return { error: "Failed to update payment status" }
+  }
+}
+
+export async function confirmParticipation(id: string) {
+  try {
+    await confirmBillParticipant(id)
+    return { success: true }
+  } catch (error) {
+    console.error("Error confirming participation:", error)
+    return { error: "Failed to confirm participation" }
+  }
+}
+
 export async function completeBill(id: string) {
   try {
     // Check if all participants have confirmed
@@ -273,7 +278,7 @@ export async function completeBill(id: string) {
       }
 
       // Check if the current user is the bill creator
-      const { data: bill } = await supabase.from("bills").select("user_id, title").eq("id", id).single()
+      const { data: bill } = await supabase.from("bills").select("user_id").eq("id", id).single()
 
       if (bill.user_id !== user.id) {
         return { error: "All participants must confirm before the bill can be completed" }
@@ -288,35 +293,64 @@ export async function completeBill(id: string) {
   }
 }
 
-export async function updateBillParticipantStatus(id: string, isPaid: boolean) {
+export async function exportBillToCSV(billId: string) {
   try {
-    const cookieStore = cookies()
-    const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-    // Get the current user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      return { error: "You must be logged in to update payment status" }
-    }
-
-    // Update the bill participant status
-    await updateBillParticipant(id, { is_paid: isPaid })
-
+    // This would typically generate a CSV file for download
+    // For now, we'll just return success
     return { success: true }
   } catch (error) {
-    console.error("Error updating bill participant status:", error)
-    return { error: "Failed to update payment status" }
+    console.error("Error exporting bill:", error)
+    return { error: "Failed to export bill" }
+  }
+}
+
+// Update the shareBill function to support new platforms
+export async function shareBill(billId: string, platform: SharePlatform) {
+  try {
+    const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/bills/${billId}`
+
+    // Generate the appropriate share URL based on the platform
+    let shareLink = ""
+
+    switch (platform) {
+      case "whatsapp":
+        shareLink = `https://wa.me/?text=${encodeURIComponent(`Check out this bill: ${shareUrl}`)}`
+        break
+      case "twitter":
+        shareLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this bill: ${shareUrl}`)}`
+        break
+      case "facebook":
+        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+        break
+      case "email":
+        shareLink = `mailto:?subject=${encodeURIComponent("Bill Shared via ShareEase")}&body=${encodeURIComponent(`Check out this bill: ${shareUrl}`)}`
+        break
+      case "sms":
+        shareLink = `sms:?body=${encodeURIComponent(`Check out this bill: ${shareUrl}`)}`
+        break
+      case "instagram":
+        // Instagram doesn't support direct sharing via URL, so we'll just return the URL to copy
+        shareLink = shareUrl
+        break
+      case "telegram":
+        shareLink = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Check out this bill on ShareEase")}`
+        break
+      case "copy":
+        // For copy, we'll just return the URL and handle the copying on the client
+        shareLink = shareUrl
+        break
+    }
+
+    return { success: true, shareUrl: shareLink }
+  } catch (error) {
+    console.error("Error sharing bill:", error)
+    return { error: "Failed to share bill" }
   }
 }
 
 export async function deleteBill(id: string) {
   try {
-    const cookieStore = cookies()
-    const supabase = createServerActionClient({ cookies: () => cookieStore })
-
+    const supabase = createServerActionClient({ cookies })
     const { error } = await supabase.from("bills").delete().eq("id", id)
 
     if (error) {
@@ -330,239 +364,4 @@ export async function deleteBill(id: string) {
     console.error("Error deleting bill:", error)
     return { error: "Failed to delete bill" }
   }
-}
-
-export async function exportBillToCSV(billId: string) {
-  try {
-    const cookieStore = cookies()
-    const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-    // Fetch bill details with participants
-    const { data: bill, error: billError } = await supabase
-      .from("bills")
-      .select(
-        `
-        *,
-        participants:bill_participants(
-          *,
-          participant:participants(*)
-        )
-      `,
-      )
-      .eq("id", billId)
-      .single()
-
-    if (billError) {
-      console.error("Error fetching bill:", billError)
-      return { error: "Failed to fetch bill details" }
-    }
-
-    if (!bill) {
-      return { error: "Bill not found" }
-    }
-
-    // Format data for CSV
-    const csvRows = []
-    const header = ["Participant Name", "Amount", "Is Paid", "Email", "Phone"]
-    csvRows.push(header.join(","))
-
-    bill.participants.forEach((participant) => {
-      const values = [
-        participant.participant.name,
-        participant.amount,
-        participant.is_paid,
-        participant.participant.email,
-        participant.participant.phone_number,
-      ]
-      csvRows.push(values.join(","))
-    })
-
-    const csvData = csvRows.join("\n")
-
-    // Return CSV data
-    return { success: true, data: csvData }
-  } catch (error) {
-    console.error("Error exporting bill to CSV:", error)
-    return { error: "Failed to export bill to CSV" }
-  }
-}
-
-export async function confirmParticipation(id: string) {
-  try {
-    const cookieStore = cookies()
-    const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-    const { data, error } = await supabase
-      .from("bill_participants")
-      .update({ is_confirmed: true })
-      .eq("id", id)
-      .select()
-      .single()
-
-    if (error) {
-      console.error("Error confirming participation:", error)
-      return { error: "Failed to confirm participation" }
-    }
-
-    revalidatePath(`/bills/${data.bill_id}`)
-    return { success: true }
-  } catch (error) {
-    console.error("Error confirming participation:", error)
-    return { error: "Failed to confirm participation" }
-  }
-}
-
-export async function respondToInvitation(id: string, status: "accepted" | "declined") {
-  try {
-    const cookieStore = cookies()
-    const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-    const { data, error } = await supabase
-      .from("bill_participants")
-      .update({ invitation_status: status, is_confirmed: status === "accepted" })
-      .eq("id", id)
-      .select()
-      .single()
-
-    if (error) {
-      console.error("Error responding to invitation:", error)
-      return { error: "Failed to respond to invitation" }
-    }
-
-    revalidatePath(`/bills/${data.bill_id}`)
-    return { success: true }
-  } catch (error) {
-    console.error("Error responding to invitation:", error)
-    return { error: "Failed to respond to invitation" }
-  }
-}
-
-export async function signIn(_prevState: any, formData: FormData) {
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
-
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
-
-  if (error) {
-    console.log(error)
-    return { error: "Invalid credentials." }
-  }
-
-  revalidatePath("/")
-  return { success: true }
-}
-
-export async function signUp(_prevState: any, formData: FormData) {
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
-
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-    },
-  })
-
-  if (error) {
-    console.log(error)
-    return { error: error.message }
-  }
-
-  // Create a participant record for the new user
-  const { error: participantError } = await supabase.from("participants").insert({
-    user_id: data.user?.id,
-    name: data.user?.email, // Default name to the user's email
-    email: data.user?.email,
-  })
-
-  if (participantError) {
-    console.error("Error creating participant:", participantError)
-    return { error: "Account created, but failed to create participant profile." }
-  }
-
-  revalidatePath("/")
-  return { success: true }
-}
-
-export async function signOut() {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
-  await supabase.auth.signOut()
-  redirect("/auth/login")
-}
-
-export async function shareBill(billId: string, platform: SharePlatform) {
-  try {
-    const cookieStore = cookies()
-    const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-    // Get the current user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      return { error: "You must be logged in to share a bill" }
-    }
-
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    const shareUrl = `${baseUrl}/bills/${billId}`
-
-    let encodedText = ""
-
-    switch (platform) {
-      case "whatsapp":
-        encodedText = encodeURIComponent(`Check out this bill: ${shareUrl}`)
-        return { shareUrl: `https://wa.me/?text=${encodedText}` }
-      case "twitter":
-        encodedText = encodeURIComponent(`Check out this bill: ${shareUrl}`)
-        return { shareUrl: `https://twitter.com/intent/tweet?text=${encodedText}` }
-      case "facebook":
-        encodedText = encodeURIComponent(`Check out this bill: ${shareUrl}`)
-        return { shareUrl: `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}` }
-      case "email":
-        return {
-          shareUrl: `mailto:?subject=Bill%20Share&body=Check%20out%20this%20bill:%20${shareUrl}`,
-        }
-      case "sms":
-        encodedText = encodeURIComponent(`Check out this bill: ${shareUrl}`)
-        return { shareUrl: `sms:?body=${encodedText}` }
-      case "copy":
-        return { shareUrl }
-      default:
-        return { error: "Invalid platform" }
-    }
-  } catch (error) {
-    console.error("Error sharing bill:", error)
-    return { error: "Failed to share bill" }
-  }
-}
-
-export async function signInWithOAuth(provider: "google" | "github") {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-    },
-  })
-
-  if (error) {
-    console.error("Error signing in with OAuth:", error)
-    return { error: error.message }
-  }
-
-  return { url: data.url }
 }

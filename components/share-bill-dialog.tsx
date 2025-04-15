@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Share2, Copy, Check, Twitter, Facebook, Mail, Phone } from "lucide-react"
+import { Share2, Check, MessageCircle, Mail, Phone, Instagram, Link } from "lucide-react"
 import { shareBill } from "@/lib/actions"
 import type { SharePlatform } from "@/types"
 
@@ -36,6 +36,10 @@ export function ShareBillDialog({ billId, billTitle }: ShareBillDialogProps) {
         await navigator.clipboard.writeText(result.shareUrl)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
+      } else if (platform === "instagram") {
+        // For Instagram, we can only copy the link as direct sharing isn't supported via URL
+        await navigator.clipboard.writeText(result.shareUrl)
+        alert("Link copied! Open Instagram and paste in your message.")
       } else {
         // Open the share URL in a new window
         window.open(result.shareUrl, "_blank")
@@ -49,7 +53,7 @@ export function ShareBillDialog({ billId, billTitle }: ShareBillDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="bg-brand-500 text-white hover:bg-brand-600">
           <Share2 className="mr-2 h-4 w-4" />
           Share
         </Button>
@@ -76,16 +80,26 @@ export function ShareBillDialog({ billId, billTitle }: ShareBillDialogProps) {
               className="flex items-center justify-center gap-2"
               onClick={() => handleShare("twitter")}
             >
-              <Twitter className="h-5 w-5 text-blue-400" />
-              Twitter
+              <svg viewBox="0 0 24 24" width="24" height="24" className="h-5 w-5 fill-black">
+                <path d="M13.6823 10.6218L20.2391 3H18.6854L12.9921 9.61788L8.44486 3H3.2002L10.0765 13.0074L3.2002 21H4.75404L10.7663 14.0113L15.5685 21H20.8131L13.6819 10.6218H13.6823ZM11.5541 13.0956L10.8574 12.0991L5.31391 4.16971H7.70053L12.1742 10.5689L12.8709 11.5655L18.6861 19.8835H16.2995L11.5541 13.096V13.0956Z" />
+              </svg>
+              X (Twitter)
             </Button>
             <Button
               variant="outline"
               className="flex items-center justify-center gap-2"
-              onClick={() => handleShare("facebook")}
+              onClick={() => handleShare("instagram")}
             >
-              <Facebook className="h-5 w-5 text-blue-600" />
-              Facebook
+              <Instagram className="h-5 w-5 text-pink-600" />
+              Instagram
+            </Button>
+            <Button
+              variant="outline"
+              className="flex items-center justify-center gap-2"
+              onClick={() => handleShare("telegram")}
+            >
+              <MessageCircle className="h-5 w-5 text-blue-500" />
+              Telegram
             </Button>
             <Button
               variant="outline"
@@ -105,7 +119,7 @@ export function ShareBillDialog({ billId, billTitle }: ShareBillDialogProps) {
             </Button>
             <Button
               variant="outline"
-              className="flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2 col-span-2"
               onClick={() => handleShare("copy")}
             >
               {copied ? (
@@ -115,7 +129,7 @@ export function ShareBillDialog({ billId, billTitle }: ShareBillDialogProps) {
                 </>
               ) : (
                 <>
-                  <Copy className="h-5 w-5" />
+                  <Link className="h-5 w-5" />
                   Copy Link
                 </>
               )}

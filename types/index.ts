@@ -24,7 +24,6 @@ export type BillParticipant = {
   amount: number
   is_paid: boolean
   is_confirmed?: boolean
-  invitation_status?: InvitationStatus
   created_at: string
   updated_at: string
   // Include participant details when joined
@@ -34,7 +33,7 @@ export type BillParticipant = {
 // Update the NewBillParticipant type to make is_confirmed optional
 export type NewBillParticipant = Omit<
   BillParticipant,
-  "id" | "created_at" | "updated_at" | "is_confirmed" | "invitation_status" | "participant"
+  "id" | "created_at" | "updated_at" | "is_confirmed" | "participant"
 >
 
 export type Participant = {
@@ -44,7 +43,6 @@ export type Participant = {
   phone_number: string | null
   created_at: string
   updated_at: string
-  user_id?: string | null
 }
 
 export type BillWithParticipants = Bill & {
@@ -57,9 +55,8 @@ export type NewParticipant = Omit<Participant, "id" | "created_at" | "updated_at
 
 export type SplitType = "equal" | "custom" | "percentage"
 
-export type SharePlatform = "whatsapp" | "twitter" | "facebook" | "email" | "sms" | "copy"
-
-export type InvitationStatus = "pending" | "accepted" | "declined"
+// Update the SharePlatform type to include new platforms
+export type SharePlatform = "whatsapp" | "twitter" | "facebook" | "email" | "sms" | "copy" | "instagram" | "telegram"
 
 export const CATEGORIES = [
   "Food",
