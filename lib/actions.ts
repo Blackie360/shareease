@@ -17,7 +17,7 @@ import { revalidatePath } from "next/cache"
 // Define the deployed URL
 const DEPLOYED_URL = "https://bills2025.vercel.app"
 
-// Auth actions (already implemented)
+// Auth actions
 export async function signIn(prevState: any, formData: FormData) {
   // Check if formData is valid
   if (!formData) {
@@ -49,42 +49,6 @@ export async function signIn(prevState: any, formData: FormData) {
     return { success: true }
   } catch (error) {
     console.error("Login error:", error)
-    return { error: "An unexpected error occurred. Please try again." }
-  }
-}
-
-// Update the signInWithOAuth function to use the deployed URL
-export async function signInWithOAuth(provider: "google" | "github") {
-  const cookieStore = cookies()
-  const supabase = createServerActionClient({ cookies: () => cookieStore })
-
-  try {
-    // Use the hardcoded deployed URL for the redirect
-    const redirectTo = `${DEPLOYED_URL}/auth/callback`
-
-    console.log(`OAuth redirect URL: ${redirectTo}`)
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: provider,
-      options: {
-        redirectTo: redirectTo,
-        // Add scopes for better profile access
-        scopes: provider === "google" ? "email profile" : "user:email",
-      },
-    })
-
-    if (error) {
-      console.error(`${provider} OAuth error:`, error)
-      return { error: error.message }
-    }
-
-    if (!data.url) {
-      return { error: "Failed to get authentication URL" }
-    }
-
-    return { url: data.url }
-  } catch (error) {
-    console.error(`${provider} login error:`, error)
     return { error: "An unexpected error occurred. Please try again." }
   }
 }
@@ -183,9 +147,6 @@ export async function createBillWithParticipants(prevState: any, formData: FormD
         tip_amount: tipAmount || 0,
         receipt_image_url: null,
         currency,
-        // Remove these fields to prevent the error
-        // is_completed: false,
-        // completion_date: null,
       })
       .select()
       .single()
